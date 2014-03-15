@@ -6,7 +6,6 @@ import "errors"
 
 type Position struct { X, Y int }
 
-type Player struct { Position }
 type Goal struct { Position }
 
 type Tile rune
@@ -18,16 +17,14 @@ func (t Tile) String() string {
 type Map struct {
   Height int
   Width int
-  Player
   Goal
   tiles [][]Tile
 }
 
 func NewMap(input string) (m Map, err error) {
   var tiles [][]Tile
-  var player Player
   var goal Goal
-  var playerFound, goalFound bool
+  var goalFound bool
 
   lines := strings.Split(strings.TrimSpace(input), "\n")
 
@@ -36,9 +33,6 @@ func NewMap(input string) (m Map, err error) {
 
     for x, tile := range tiles[y] {
       switch tile {
-        case Tile('@'):
-          player = Player{Position{x, y}}
-          playerFound = true
         case Tile('*'):
           goal = Goal{Position{x, y}}
           goalFound = true
@@ -50,12 +44,9 @@ func NewMap(input string) (m Map, err error) {
   m.Width = len(tiles[0])
   m.tiles = tiles
 
-  if !playerFound {
-    err = errors.New("Map requires a Player(@)")
-  } else if !goalFound {
+  if !goalFound {
     return m, errors.New("Map requires a Goal(*)")
   } else {
-    m.Player = player
     m.Goal = goal
   }
 
