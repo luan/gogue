@@ -3,10 +3,6 @@ package gogue
 import "strings"
 import "errors"
 
-type Position struct { X, Y int }
-
-type Goal struct { Position }
-
 type Map struct {
   Height int
   Width int

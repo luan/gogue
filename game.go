@@ -2,8 +2,6 @@ package gogue
 
 import "errors"
 
-type Player struct { Position }
-
 type Game struct {
   Map
   Player
