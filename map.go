@@ -38,7 +38,7 @@ func NewMap(input string) (m Map, err error) {
   m.tiles = tiles
 
   if !goalFound {
-    return m, errors.New("Map requires a Goal(*)")
+    err = errors.New("Map requires a Goal(*)")
   } else {
     m.Goal = goal
   }
