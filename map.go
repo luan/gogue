@@ -1,18 +1,11 @@
 package gogue
 
-import "fmt"
 import "strings"
 import "errors"
 
 type Position struct { X, Y int }
 
 type Goal struct { Position }
-
-type Tile rune
-
-func (t Tile) String() string {
-  return fmt.Sprintf("%c", t)
-}
 
 type Map struct {
   Height int
