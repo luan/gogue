@@ -1,73 +1,75 @@
 package gogue
 
-import "errors"
+import (
+  "errors"
+)
 
 type Game struct {
   Map
   Player
 }
 
-func (game Game) FollowPath(steps... rune) (Game, error) {
+func (g Game) FollowPath(steps... rune) (Game, error) {
   if len(steps) == 0 {
-    return game, nil
+    return g, nil
   }
 
   var err error
 
   switch steps[0] {
-  case 'n': game, err = game.MoveNorth()
-  case 's': game, err = game.MoveSouth()
-  case 'e': game, err = game.MoveEast()
-  case 'w': game, err = game.MoveWest()
+  case 'n': g, err = g.MoveNorth()
+  case 's': g, err = g.MoveSouth()
+  case 'e': g, err = g.MoveEast()
+  case 'w': g, err = g.MoveWest()
   }
 
   if (err != nil) {
-    return game, err
+    return g, err
   }
 
-  return game.FollowPath(steps[1:]...)
+  return g.FollowPath(steps[1:]...)
 }
 
-func (game Game) IsOver() bool {
-  return game.Player.Position == game.Goal.Position
+func (g Game) IsOver() bool {
+  return g.Player.Position == g.Goal.Position
 }
 
-func (game Game) MoveNorth() (Game, error) {
-  if game.Map.Get(game.Player.X, game.Player.Y - 1).IsWalkable() {
-    game.Player.Y -= 1
-    return game, nil
+func (g Game) MoveNorth() (Game, error) {
+  if g.Map.Get(g.Player.X, g.Player.Y - 1).IsWalkable() {
+    g.Player.Y -= 1
+    return g, nil
   } else {
     err := errors.New("Cannot move")
-    return game, err
-  }
-}
-
-func (game Game) MoveSouth() (Game, error) {
-  if game.Map.Get(game.Player.X, game.Player.Y + 1).IsWalkable() {
-    game.Player.Y += 1
-    return game, nil
-  } else {
-    err := errors.New("Cannot move")
-    return game, err
+    return g, err
   }
 }
 
-func (game Game) MoveEast() (Game, error) {
-  if game.Map.Get(game.Player.X + 1, game.Player.Y).IsWalkable() {
-    game.Player.X += 1
-    return game, nil
+func (g Game) MoveSouth() (Game, error) {
+  if g.Map.Get(g.Player.X, g.Player.Y + 1).IsWalkable() {
+    g.Player.Y += 1
+    return g, nil
   } else {
     err := errors.New("Cannot move")
-    return game, err
+    return g, err
   }
 }
 
-func (game Game) MoveWest() (Game, error) {
-  if game.Map.Get(game.Player.X - 1, game.Player.Y).IsWalkable() {
-    game.Player.X -= 1
-    return game, nil
+func (g Game) MoveEast() (Game, error) {
+  if g.Map.Get(g.Player.X + 1, g.Player.Y).IsWalkable() {
+    g.Player.X += 1
+    return g, nil
   } else {
     err := errors.New("Cannot move")
-    return game, err
+    return g, err
+  }
+}
+
+func (g Game) MoveWest() (Game, error) {
+  if g.Map.Get(g.Player.X - 1, g.Player.Y).IsWalkable() {
+    g.Player.X -= 1
+    return g, nil
+  } else {
+    err := errors.New("Cannot move")
+    return g, err
   }
 }
