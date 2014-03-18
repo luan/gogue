@@ -1,7 +1,9 @@
 package gogue
 
-import "strings"
-import "errors"
+import (
+  "errors"
+  "strings"
+)
 
 type Map struct {
   Height int
