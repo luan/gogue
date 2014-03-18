@@ -2,11 +2,18 @@ package gogue
 
 import (
   "errors"
+  "fmt"
 )
 
 type Game struct {
   Map
   Player
+}
+
+func (g Game) String() string {
+  return fmt.Sprintf("Game{\n\t%s\n\t%s\n}",
+                     indent(fmt.Sprint(g.Player)),
+                     indent(fmt.Sprint(g.Map)))
 }
 
 func (g Game) FollowPath(steps... rune) (Game, error) {
