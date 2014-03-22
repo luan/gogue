@@ -45,6 +45,10 @@ func NewMap(input string) (m Map, err error) {
   return
 }
 
+func (m Map) Tiles() [][]Tile {
+  return m.tiles
+}
+
 func (m Map) Get(x, y int) Tile {
   return m.tiles[y][x]
 }
