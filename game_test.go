@@ -8,11 +8,11 @@ import (
 
 var _ = Describe("Game", func() {
 	var (
-		player Player
-		game Game
-		gameMap Map
+		player    Player
+		game      Game
+		gameMap   Map
 		mapString string
-		err error
+		err       error
 	)
 	BeforeEach(func() {
 		mapString = `

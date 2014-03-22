@@ -1,11 +1,10 @@
 package gogue
 
 import (
-  "fmt"
-  "strings"
+	"fmt"
+	"strings"
 )
 
 func indent(s string) string {
-  return strings.Join(strings.Split(fmt.Sprint(s), "\n"), "\n\t")
+	return strings.Join(strings.Split(fmt.Sprint(s), "\n"), "\n\t")
 }
-

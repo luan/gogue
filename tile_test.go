@@ -7,21 +7,21 @@ import (
 )
 
 var _ = Describe("Tile", func() {
-  Describe("IsWalkable", func() {
-    It("Knows that '.' are walkable", func() {
-      Expect(Tile('.').IsWalkable()).To(BeTrue())
-    })
+	Describe("IsWalkable", func() {
+		It("Knows that '.' are walkable", func() {
+			Expect(Tile('.').IsWalkable()).To(BeTrue())
+		})
 
-    It("Knows that '*' are walkable", func() {
-      Expect(Tile('*').IsWalkable()).To(BeTrue())
-    })
+		It("Knows that '*' are walkable", func() {
+			Expect(Tile('*').IsWalkable()).To(BeTrue())
+		})
 
-    It("And everything else is not", func() {
-      Expect(Tile('#').IsWalkable()).To(BeFalse())
-      Expect(Tile('$').IsWalkable()).To(BeFalse())
-      Expect(Tile('-').IsWalkable()).To(BeFalse())
-      Expect(Tile('@').IsWalkable()).To(BeFalse())
-      Expect(Tile('3').IsWalkable()).To(BeFalse())
-    })
-  })
+		It("And everything else is not", func() {
+			Expect(Tile('#').IsWalkable()).To(BeFalse())
+			Expect(Tile('$').IsWalkable()).To(BeFalse())
+			Expect(Tile('-').IsWalkable()).To(BeFalse())
+			Expect(Tile('@').IsWalkable()).To(BeFalse())
+			Expect(Tile('3').IsWalkable()).To(BeFalse())
+		})
+	})
 })
