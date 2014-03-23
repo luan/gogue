@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/luan/gogue"
 	ncurses "github.com/tncardoso/gocurses"
-	"math"
 )
 
 func distance(a, b gogue.Position) float64 {
@@ -17,7 +18,7 @@ func showMapSight(g gogue.Game, light int, wind *ncurses.Window) (s string) {
 	for y, row := range g.Tiles() {
 		for x, tile := range row {
 			if x < 0 || x >= g.Width || y < 0 || y >= g.Height ||
-				distance(g.Player.Position, gogue.Position{x, y}) > float64(light) {
+				distance(g.Player.Position, gogue.Position{X: x, Y: y}) > float64(light) {
 				wind.Mvaddch(y, x, ' ')
 			} else if g.Player.X == x && g.Player.Y == y {
 				wind.Attron(ncurses.A_BOLD)
@@ -51,7 +52,12 @@ func main() {
   #.............................#
   ###############################
   `)
-	game := gogue.Game{m, gogue.Player{gogue.Position{11, 5}}}
+	game := gogue.Game{
+		Map: m,
+		Player: gogue.Player{
+			Position: gogue.Position{X: 11, Y: 5},
+		},
+	}
 
 	ncurses.Initscr()
 	defer ncurses.End()

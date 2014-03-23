@@ -46,41 +46,41 @@ func (g Game) IsOver() bool {
 }
 
 func (g Game) MoveNorth() (Game, error) {
-	if g.Map.Get(g.Player.X, g.Player.Y-1).IsWalkable() {
-		g.Player.Y -= 1
-		return g, nil
-	} else {
-		err := errors.New("Cannot move")
+	if !g.Map.Get(g.Player.X, g.Player.Y-1).IsWalkable() {
+		err := errors.New("cannot move")
 		return g, err
 	}
+
+	g.Player.Y--
+	return g, nil
 }
 
 func (g Game) MoveSouth() (Game, error) {
-	if g.Map.Get(g.Player.X, g.Player.Y+1).IsWalkable() {
-		g.Player.Y += 1
-		return g, nil
-	} else {
-		err := errors.New("Cannot move")
+	if !g.Map.Get(g.Player.X, g.Player.Y+1).IsWalkable() {
+		err := errors.New("cannot move")
 		return g, err
 	}
+
+	g.Player.Y++
+	return g, nil
 }
 
 func (g Game) MoveEast() (Game, error) {
-	if g.Map.Get(g.Player.X+1, g.Player.Y).IsWalkable() {
-		g.Player.X += 1
-		return g, nil
-	} else {
-		err := errors.New("Cannot move")
+	if !g.Map.Get(g.Player.X+1, g.Player.Y).IsWalkable() {
+		err := errors.New("cannot move")
 		return g, err
 	}
+
+	g.Player.X++
+	return g, nil
 }
 
 func (g Game) MoveWest() (Game, error) {
-	if g.Map.Get(g.Player.X-1, g.Player.Y).IsWalkable() {
-		g.Player.X -= 1
-		return g, nil
-	} else {
-		err := errors.New("Cannot move")
+	if !g.Map.Get(g.Player.X-1, g.Player.Y).IsWalkable() {
+		err := errors.New("cannot move")
 		return g, err
 	}
+
+	g.Player.X--
+	return g, nil
 }

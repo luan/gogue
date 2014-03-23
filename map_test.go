@@ -22,7 +22,7 @@ var _ = Describe("Map", func() {
 
 		It("errors if there is no goal", func() {
 			_, err := NewMap(`.`)
-			Expect(err.Error()).To(Equal("Map requires a Goal(*)"))
+			Expect(err.Error()).To(Equal("map requires a Goal(*)"))
 		})
 
 		It("knows where the goal is", func() {

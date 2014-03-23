@@ -97,30 +97,30 @@ var _ = Describe("Game", func() {
 				`
 			})
 
-			It("Cannot move north", func() {
+			It("cannot move north", func() {
 				game, err = game.MoveNorth()
-				Expect(err.Error()).To(Equal("Cannot move"))
+				Expect(err.Error()).To(Equal("cannot move"))
 				Expect(game.Player.X).To(Equal(1))
 				Expect(game.Player.Y).To(Equal(1))
 			})
 
-			It("Cannot move south", func() {
+			It("cannot move south", func() {
 				game, err = game.MoveSouth()
-				Expect(err.Error()).To(Equal("Cannot move"))
+				Expect(err.Error()).To(Equal("cannot move"))
 				Expect(game.Player.X).To(Equal(1))
 				Expect(game.Player.Y).To(Equal(1))
 			})
 
-			It("Cannot move east", func() {
+			It("cannot move east", func() {
 				game, err = game.MoveEast()
-				Expect(err.Error()).To(Equal("Cannot move"))
+				Expect(err.Error()).To(Equal("cannot move"))
 				Expect(game.Player.X).To(Equal(1))
 				Expect(game.Player.Y).To(Equal(1))
 			})
 
-			It("Cannot move west", func() {
+			It("cannot move west", func() {
 				game, err = game.MoveWest()
-				Expect(err.Error()).To(Equal("Cannot move"))
+				Expect(err.Error()).To(Equal("cannot move"))
 				Expect(game.Player.X).To(Equal(1))
 				Expect(game.Player.Y).To(Equal(1))
 			})
