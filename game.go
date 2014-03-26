@@ -16,31 +16,6 @@ func (g Game) String() string {
 		indent(fmt.Sprint(g.Map)))
 }
 
-func (g Game) FollowPath(steps ...rune) (Game, error) {
-	if len(steps) == 0 {
-		return g, nil
-	}
-
-	var err error
-
-	switch steps[0] {
-	case 'n':
-		g, err = g.MoveNorth()
-	case 's':
-		g, err = g.MoveSouth()
-	case 'e':
-		g, err = g.MoveEast()
-	case 'w':
-		g, err = g.MoveWest()
-	}
-
-	if err != nil {
-		return g, err
-	}
-
-	return g.FollowPath(steps[1:]...)
-}
-
 func (g Game) IsOver() bool {
 	return g.Player.Position == g.Goal.Position
 }
