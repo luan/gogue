@@ -16,8 +16,8 @@ var _ = Describe("Map", func() {
 			Expect(err).To(BeNil())
 			Expect(newMap.Height).To(Equal(2))
 			Expect(newMap.Width).To(Equal(3))
-			Expect(newMap.Get(0, 0)).To(Equal(Tile('.')))
-			Expect(newMap.Get(2, 1)).To(Equal(Tile('*')))
+			Expect(newMap.Get(Position{0, 0})).To(Equal(Tile('.')))
+			Expect(newMap.Get(Position{2, 1})).To(Equal(Tile('*')))
 		})
 
 		It("errors if there is no goal", func() {

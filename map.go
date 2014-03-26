@@ -49,8 +49,8 @@ func (m Map) Tiles() [][]Tile {
 	return m.tiles
 }
 
-func (m Map) Get(x, y int) Tile {
-	return m.tiles[y][x]
+func (m Map) Get(pos Position) Tile {
+	return m.tiles[pos.Y][pos.X]
 }
 
 func (m Map) tilesString() (s string) {
