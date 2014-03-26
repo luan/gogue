@@ -73,10 +73,11 @@ func main() {
 	ncurses.InitPair(1, ncurses.COLOR_GREEN, ncurses.COLOR_BLACK)
 	ncurses.Refresh()
 
-	wind := ncurses.NewWindow(game.Height, game.Width, 5, 5)
+	wind := ncurses.NewWindow(game.Height+2, game.Width, 5, 5)
 
 	for {
 		showMapSight(game, 3, wind)
+		wind.Mvaddstr(game.Height+1, 0, game.Player.String())
 		wind.Refresh()
 
 		if game.IsOver() {
