@@ -27,7 +27,7 @@ var _ = Describe("Game", func() {
 	})
 
 	JustBeforeEach(func() {
-		player = Player{Position{1, 1}}
+		player = Player{Position{X: 1, Y: 1}}
 		gameMap, _ = NewMap(mapString)
 		game = Game{gameMap, player}
 	})

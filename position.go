@@ -1,6 +1,6 @@
 package gogue
 
-type Position struct{ X, Y int }
+type Position struct{ X, Y, Z int }
 
 func (p Position) North() Position {
 	p.Y--

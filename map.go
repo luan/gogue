@@ -9,31 +9,36 @@ import (
 type Map struct {
 	Height int
 	Width  int
+	Depth  int
 	Goal
-	tiles [][]Tile
+	tiles [][][]Tile
 }
 
-func NewMap(input string) (m Map, err error) {
-	var tiles [][]Tile
+func NewMap(inputs ...string) (m Map, err error) {
+	var tiles [][][]Tile
 	var goal Goal
 	var goalFound bool
 
-	lines := strings.Split(strings.TrimSpace(input), "\n")
+	for z, input := range inputs {
+		lines := strings.Split(strings.TrimSpace(input), "\n")
+		tiles = append(tiles, [][]Tile{})
 
-	for y, line := range lines {
-		tiles = append(tiles, []Tile(strings.TrimSpace(line)))
+		for y, line := range lines {
+			tiles[z] = append(tiles[z], []Tile(strings.TrimSpace(line)))
 
-		for x, tile := range tiles[y] {
-			switch tile {
-			case Tile('*'):
-				goal = Goal{Position{x, y}}
-				goalFound = true
+			for x, tile := range tiles[z][y] {
+				switch tile {
+				case Tile('*'):
+					goal = Goal{Position{X: x, Y: y, Z: z}}
+					goalFound = true
+				}
 			}
 		}
 	}
 
-	m.Height = len(tiles)
-	m.Width = len(tiles[0])
+	m.Depth = len(tiles)
+	m.Height = len(tiles[0])
+	m.Width = len(tiles[0][0])
 	m.tiles = tiles
 
 	if !goalFound {
@@ -45,12 +50,12 @@ func NewMap(input string) (m Map, err error) {
 	return
 }
 
-func (m Map) Tiles() [][]Tile {
+func (m Map) Tiles() [][][]Tile {
 	return m.tiles
 }
 
 func (m Map) Get(pos Position) Tile {
-	return m.tiles[pos.Y][pos.X]
+	return m.tiles[pos.Z][pos.Y][pos.X]
 }
 
 func (m Map) tilesString() (s string) {
