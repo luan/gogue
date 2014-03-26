@@ -64,11 +64,11 @@ func (g Game) MoveWest() (Game, error) {
 func (g Game) moveTo(pos Position) (Game, error) {
 	tile := g.Map.Get(pos)
 
-	if tile.IsWalkable() {
-		g.Player.Position = pos
-		return g, nil
+	if !tile.IsWalkable() {
+		err := errors.New("cannot move")
+		return g, err
 	}
 
-	err := errors.New("cannot move")
-	return g, err
+	g.Player.Position = pos
+	return g, nil
 }
