@@ -89,13 +89,13 @@ func main() {
 		switch ncurses.Stdscr.Getch() {
 		case 'q':
 			return
-		case 'w':
+		case ncurses.KEY_UP:
 			game, _ = game.MoveNorth()
-		case 's':
+		case ncurses.KEY_DOWN:
 			game, _ = game.MoveSouth()
-		case 'a':
+		case ncurses.KEY_LEFT:
 			game, _ = game.MoveWest()
-		case 'd':
+		case ncurses.KEY_RIGHT:
 			game, _ = game.MoveEast()
 		}
 	}
