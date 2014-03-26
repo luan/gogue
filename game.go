@@ -69,6 +69,12 @@ func (g Game) moveTo(pos Position) (Game, error) {
 		return g, err
 	}
 
+	switch tile.ChangeFloor() {
+	case "up":
+		pos = pos.Up()
+	case "down":
+		pos = pos.Down()
+	}
 	g.Player.Position = pos
 	return g, nil
 }

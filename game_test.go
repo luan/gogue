@@ -8,14 +8,14 @@ import (
 
 var _ = Describe("Game", func() {
 	var (
-		player    Player
-		game      Game
-		gameMap   Map
-		mapString string
-		err       error
+		player   Player
+		game     Game
+		gameMap  Map
+		mapInput []string
+		err      error
 	)
 	BeforeEach(func() {
-		mapString = `
+		mapInput = []string{`
 		##########
 		#........#
 		####.#####
@@ -23,12 +23,12 @@ var _ = Describe("Game", func() {
 		#.######.#
 		#........#
 		##########
-		`
+		`}
 	})
 
 	JustBeforeEach(func() {
 		player = Player{Position{X: 1, Y: 1}}
-		gameMap, _ = NewMap(mapString)
+		gameMap, _ = NewMap(mapInput...)
 		game = Game{gameMap, player}
 	})
 
@@ -52,11 +52,11 @@ var _ = Describe("Game", func() {
 	Describe("Walking", func() {
 		Context("When all squares around the player are walkable", func() {
 			BeforeEach(func() {
-				mapString = `
+				mapInput = []string{`
 				...
 				...
 				...
-				`
+				`}
 			})
 
 			It("Can move north", func() {
@@ -90,11 +90,11 @@ var _ = Describe("Game", func() {
 
 		Context("When no squares around the player are walkable", func() {
 			BeforeEach(func() {
-				mapString = `
+				mapInput = []string{`
 				###
 				#.#
 				###
-				`
+				`}
 			})
 
 			It("cannot move north", func() {
@@ -123,6 +123,36 @@ var _ = Describe("Game", func() {
 				Expect(err.Error()).To(Equal("cannot move"))
 				Expect(game.Player.X).To(Equal(1))
 				Expect(game.Player.Y).To(Equal(1))
+			})
+		})
+
+		Context("when next tile is floor changer", func() {
+			BeforeEach(func() {
+				mapInput = []string{`
+				...
+				>..
+				`, `
+				...
+				<.*
+				`}
+			})
+
+			It("goes down when move towards the stairs", func() {
+				game, err = game.MoveWest()
+				Expect(err).To(BeNil())
+				Expect(game.Player.X).To(Equal(0))
+				Expect(game.Player.Y).To(Equal(1))
+				Expect(game.Player.Z).To(Equal(1))
+			})
+
+			It("can go back up", func() {
+				game, _ = game.MoveWest()
+				game, _ = game.MoveEast()
+				game, err = game.MoveWest()
+				Expect(err).To(BeNil())
+				Expect(game.Player.X).To(Equal(0))
+				Expect(game.Player.Y).To(Equal(1))
+				Expect(game.Player.Z).To(Equal(0))
 			})
 		})
 	})
