@@ -34,4 +34,18 @@ var _ = Describe("Position", func() {
 			Expect(pos.West()).To(Equal(Position{X: 1, Y: 2}))
 		})
 	})
+
+	Describe("Up", func() {
+		It("changes the position to the upper floor of the current", func() {
+			pos := Position{X: 2, Y: 2, Z: 2}
+			Expect(pos.Up()).To(Equal(Position{X: 2, Y: 2, Z: 1}))
+		})
+	})
+
+	Describe("Down", func() {
+		It("changes the position to the lower floor of the current", func() {
+			pos := Position{X: 2, Y: 2, Z: 2}
+			Expect(pos.Down()).To(Equal(Position{X: 2, Y: 2, Z: 3}))
+		})
+	})
 })
