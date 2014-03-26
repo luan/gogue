@@ -6,6 +6,16 @@ type Tile rune
 
 var WALKABLE_TILES = []Tile{'.', '*', '>', '<'}
 
+func (t Tile) ChangeFloor() (change string) {
+	switch t {
+	case Tile('>'):
+		change = "down"
+	case Tile('<'):
+		change = "up"
+	}
+	return
+}
+
 func (t Tile) String() string {
 	return fmt.Sprintf("%c", t)
 }

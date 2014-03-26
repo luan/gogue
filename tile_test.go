@@ -29,4 +29,18 @@ var _ = Describe("Tile", func() {
 			Expect(Tile('3').IsWalkable()).To(BeFalse())
 		})
 	})
+
+	Describe("ChangeFloor", func() {
+		It("goes down on '>' tiles", func() {
+			Expect(Tile('>').ChangeFloor()).To(Equal("down"))
+		})
+
+		It("goes up on '<' tiles", func() {
+			Expect(Tile('<').ChangeFloor()).To(Equal("up"))
+		})
+
+		It("stays still on other tiles", func() {
+			Expect(Tile('.').ChangeFloor()).To(Equal(""))
+		})
+	})
 })
