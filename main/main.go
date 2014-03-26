@@ -29,7 +29,24 @@ func showMapSight(g gogue.Game, light int, wind *ncurses.Window) (s string) {
 				wind.Attroff(ncurses.ColorPair(1))
 				wind.Attroff(ncurses.A_BOLD)
 			} else {
-				wind.Mvaddch(y, x, rune(tile.String()[0]))
+				t := rune(tile.String()[0])
+				if t == '>' {
+					wind.Attron(ncurses.ColorPair(2))
+				} else if t == '<' {
+					wind.Attron(ncurses.ColorPair(3))
+				} else if t == '*' {
+					wind.Attron(ncurses.ColorPair(4))
+				}
+
+				wind.Mvaddch(y, x, t)
+
+				if t == '>' {
+					wind.Attroff(ncurses.ColorPair(2))
+				} else if t == '<' {
+					wind.Attroff(ncurses.ColorPair(3))
+				} else if t == '*' {
+					wind.Attroff(ncurses.ColorPair(4))
+				}
 			}
 		}
 
@@ -84,6 +101,9 @@ func main() {
 
 	ncurses.CursSet(0)
 	ncurses.InitPair(1, ncurses.COLOR_GREEN, ncurses.COLOR_BLACK)
+	ncurses.InitPair(2, ncurses.COLOR_BLUE, ncurses.COLOR_BLACK)
+	ncurses.InitPair(3, ncurses.COLOR_CYAN, ncurses.COLOR_BLACK)
+	ncurses.InitPair(4, ncurses.COLOR_RED, ncurses.COLOR_BLACK)
 	ncurses.Refresh()
 
 	wind := ncurses.NewWindow(game.Height+2, game.Width, 5, 5)
