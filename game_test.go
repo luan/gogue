@@ -16,13 +16,11 @@ var _ = Describe("Game", func() {
 	)
 	BeforeEach(func() {
 		mapInput = []string{`
-		##########
-		#........#
-		####.#####
-		#....###*#
-		#.######.#
-		#........#
-		##########
+		######
+		#....#
+		#..#*#
+		#....#
+		######
 		`}
 	})
 
@@ -33,20 +31,17 @@ var _ = Describe("Game", func() {
 	})
 
 	It("ends when the player reaches the goal", func() {
-		game, err = game.FollowPath('e', 'e', 'e', 's', 's')
+		game, _ = game.MoveEast()
+		game, _ = game.MoveEast()
+		game, _ = game.MoveEast()
 		Expect(game.Player.Position.X).To(Equal(4))
-		Expect(game.Player.Position.Y).To(Equal(3))
+		Expect(game.Player.Position.Y).To(Equal(1))
 		Expect(game.IsOver()).To(BeFalse())
 
-		game, err = game.FollowPath('w', 'w', 'w', 's', 's')
-		Expect(game.Player.Position.X).To(Equal(1))
-		Expect(game.Player.Position.Y).To(Equal(5))
-		Expect(game.IsOver()).To(BeFalse())
-
-		game, err = game.FollowPath('e', 'e', 'e', 'e', 'e', 'e', 'e', 'n', 'n')
+		game, _ = game.MoveSouth()
+		Expect(game.Player.Position.X).To(Equal(4))
+		Expect(game.Player.Position.Y).To(Equal(2))
 		Expect(game.IsOver()).To(BeTrue())
-		Expect(game.Player.Position.X).To(Equal(8))
-		Expect(game.Player.Position.Y).To(Equal(3))
 	})
 
 	Describe("Walking", func() {
