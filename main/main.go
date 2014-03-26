@@ -15,7 +15,9 @@ func distance(a, b gogue.Position) float64 {
 }
 
 func showMapSight(g gogue.Game, light int, wind *ncurses.Window) (s string) {
-	for y, row := range g.Tiles() {
+	tiles := g.Tiles()[g.Player.Z]
+
+	for y, row := range tiles {
 		for x, tile := range row {
 			if x < 0 || x >= g.Width || y < 0 || y >= g.Height ||
 				distance(g.Player.Position, gogue.Position{X: x, Y: y}) > float64(light) {
@@ -55,7 +57,7 @@ func main() {
 	game := gogue.Game{
 		Map: m,
 		Player: gogue.Player{
-			Position: gogue.Position{X: 11, Y: 5},
+			Position: gogue.Position{X: 11, Y: 5, Z: 0},
 		},
 	}
 
