@@ -8,15 +8,20 @@ import (
 
 var _ = Describe("Tile", func() {
 	Describe("IsWalkable", func() {
-		It("Knows that '.' are walkable", func() {
+		It("knows that '.' are walkable", func() {
 			Expect(Tile('.').IsWalkable()).To(BeTrue())
 		})
 
-		It("Knows that '*' are walkable", func() {
+		It("knows that '*' are walkable", func() {
 			Expect(Tile('*').IsWalkable()).To(BeTrue())
 		})
 
-		It("And everything else is not", func() {
+		It("knows that floor changers are walkable", func() {
+			Expect(Tile('>').IsWalkable()).To(BeTrue())
+			Expect(Tile('<').IsWalkable()).To(BeTrue())
+		})
+
+		It("and everything else is not", func() {
 			Expect(Tile('#').IsWalkable()).To(BeFalse())
 			Expect(Tile('$').IsWalkable()).To(BeFalse())
 			Expect(Tile('-').IsWalkable()).To(BeFalse())
