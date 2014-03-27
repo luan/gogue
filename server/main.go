@@ -59,15 +59,18 @@ func handleClient(game gogue.Game, conn net.Conn) {
 			return
 		}
 
-		buf := make([]byte, 2)
-		_, err := conn.Read(buf)
+		buf := make([]byte, 4)
+		bytesRead, err := conn.Read(buf)
 		if err != nil {
 			return
 		}
 
-		fmt.Println("Client(", conn, "): ", string(buf))
+		bufString := string(buf[0:bytesRead])
+		fmt.Println("Client(", conn, "): ", bufString)
 
-		switch string(buf) {
+		switch bufString {
+		case "quit":
+			conn.Write([]byte("quit"))
 		case "mn":
 			game, _ = game.MoveNorth()
 		case "ms":

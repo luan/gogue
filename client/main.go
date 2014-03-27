@@ -32,6 +32,26 @@ func showMapSight(mapString string) {
 	}
 }
 
+func eventLoop(conn net.Conn) {
+	for {
+		switch ev := termbox.PollEvent(); ev.Type {
+		case termbox.EventKey:
+			switch ev.Key {
+			case termbox.KeyCtrlQ:
+				conn.Write([]byte("quit"))
+			case termbox.KeyArrowUp:
+				conn.Write([]byte("mn"))
+			case termbox.KeyArrowDown:
+				conn.Write([]byte("ms"))
+			case termbox.KeyArrowLeft:
+				conn.Write([]byte("mw"))
+			case termbox.KeyArrowRight:
+				conn.Write([]byte("me"))
+			}
+		}
+	}
+}
+
 func main() {
 	err := termbox.Init()
 	if err != nil {
@@ -50,45 +70,29 @@ func main() {
 	}
 
 	defer conn.Close()
+	go eventLoop(conn)
 
 	for {
 		buf := make([]byte, 1024)
-		_, err := conn.Read(buf)
+		bytesRead, err := conn.Read(buf)
 
 		if err != nil {
 			fmt.Println("Error ocurred.")
 			return
 		}
 
-		if string(buf) == "over" {
+		bufString := string(buf[0:bytesRead])
+
+		switch bufString {
+		case "over":
 			fmt.Println("Congratz, you found the end of the maze!")
 			return
+		case "quit":
+			return
+		default:
+			showMapSight(bufString)
 		}
 
-		showMapSight(string(buf))
 		termbox.Flush()
-
-	ioloop:
-		for {
-			switch ev := termbox.PollEvent(); ev.Type {
-			case termbox.EventKey:
-				switch ev.Key {
-				case termbox.KeyCtrlQ:
-					return
-				case termbox.KeyArrowUp:
-					conn.Write([]byte("mn"))
-					break ioloop
-				case termbox.KeyArrowDown:
-					conn.Write([]byte("ms"))
-					break ioloop
-				case termbox.KeyArrowLeft:
-					conn.Write([]byte("mw"))
-					break ioloop
-				case termbox.KeyArrowRight:
-					conn.Write([]byte("me"))
-					break ioloop
-				}
-			}
-		}
 	}
 }
