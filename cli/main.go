@@ -14,7 +14,7 @@ func distance(a, b gogue.Position) float64 {
 	return math.Sqrt(xDiff*xDiff + yDiff*yDiff)
 }
 
-func showMapSight(g gogue.Game, light int, wind *ncurses.Window) (s string) {
+func showMapSight(g gogue.Game, light int, wind *ncurses.Window) {
 	tiles := g.Tiles()[g.Player.Z]
 
 	for y, row := range tiles {
@@ -49,11 +49,7 @@ func showMapSight(g gogue.Game, light int, wind *ncurses.Window) (s string) {
 				}
 			}
 		}
-
-		s += "\n"
 	}
-
-	return
 }
 
 func main() {
