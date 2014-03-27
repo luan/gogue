@@ -5,57 +5,43 @@ import (
 	"net"
 	"strings"
 
-	ncurses "github.com/tncardoso/gocurses"
+	termbox "github.com/nsf/termbox-go"
 )
 
-func showMapSight(mapString string, wind *ncurses.Window) {
+func showMapSight(mapString string) {
 	for y, row := range strings.Split(mapString, "\n") {
 		for x, tile := range []byte(row) {
 			t := rune(tile)
-			if t == '>' {
-				wind.Attron(ncurses.ColorPair(2))
-			} else if t == '<' {
-				wind.Attron(ncurses.ColorPair(3))
-			} else if t == '*' {
-				wind.Attron(ncurses.ColorPair(4))
-			} else if t == '@' {
-				wind.Attron(ncurses.A_BOLD)
-				wind.Attron(ncurses.ColorPair(1))
+			fgAtts := termbox.ColorWhite
+			bgAttrs := termbox.ColorDefault
+
+			switch t {
+			case '>':
+				fgAtts = termbox.ColorBlue
+			case '<':
+				fgAtts = termbox.ColorCyan
+			case '*':
+				fgAtts = termbox.AttrBold + termbox.ColorYellow
+				bgAttrs = termbox.ColorBlack
+			case '@':
+				fgAtts = termbox.AttrBold + termbox.ColorGreen
 			}
 
-			wind.Mvaddch(y, x, t)
-
-			if t == '>' {
-				wind.Attroff(ncurses.ColorPair(2))
-			} else if t == '<' {
-				wind.Attroff(ncurses.ColorPair(3))
-			} else if t == '*' {
-				wind.Attroff(ncurses.ColorPair(4))
-			} else if t == '@' {
-				wind.Attroff(ncurses.A_BOLD)
-				wind.Attroff(ncurses.ColorPair(1))
-			}
+			termbox.SetCell(x+5, y+5, t, fgAtts, bgAttrs)
 		}
 	}
 }
 
 func main() {
-	ncurses.Initscr()
-	defer ncurses.End()
+	err := termbox.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer termbox.Close()
 
-	ncurses.StartColor()
-	ncurses.Cbreak()
-	ncurses.Noecho()
-	ncurses.Stdscr.Keypad(true)
+	termbox.HideCursor()
+	termbox.Flush()
 
-	ncurses.CursSet(0)
-	ncurses.InitPair(1, ncurses.COLOR_GREEN, ncurses.COLOR_BLACK)
-	ncurses.InitPair(2, ncurses.COLOR_BLUE, ncurses.COLOR_BLACK)
-	ncurses.InitPair(3, ncurses.COLOR_CYAN, ncurses.COLOR_BLACK)
-	ncurses.InitPair(4, ncurses.COLOR_RED, ncurses.COLOR_BLACK)
-	ncurses.Refresh()
-
-	wind := ncurses.NewWindow(12, 31, 5, 5)
 	conn, err := net.Dial("tcp", "127.0.0.1:8383")
 
 	if err != nil {
@@ -75,26 +61,34 @@ func main() {
 		}
 
 		if string(buf) == "over" {
-			ncurses.End()
 			fmt.Println("Congratz, you found the end of the maze!")
 			return
 		}
 
-		showMapSight(string(buf), wind)
-		// wind.Mvaddstr(game.Height+1, 0, game.Player.String())
-		wind.Refresh()
+		showMapSight(string(buf))
+		termbox.Flush()
 
-		switch ncurses.Stdscr.Getch() {
-		case 'q':
-			return
-		case ncurses.KEY_UP:
-			conn.Write([]byte("mn"))
-		case ncurses.KEY_DOWN:
-			conn.Write([]byte("ms"))
-		case ncurses.KEY_LEFT:
-			conn.Write([]byte("mw"))
-		case ncurses.KEY_RIGHT:
-			conn.Write([]byte("me"))
+	ioloop:
+		for {
+			switch ev := termbox.PollEvent(); ev.Type {
+			case termbox.EventKey:
+				switch ev.Key {
+				case termbox.KeyCtrlQ:
+					return
+				case termbox.KeyArrowUp:
+					conn.Write([]byte("mn"))
+					break ioloop
+				case termbox.KeyArrowDown:
+					conn.Write([]byte("ms"))
+					break ioloop
+				case termbox.KeyArrowLeft:
+					conn.Write([]byte("mw"))
+					break ioloop
+				case termbox.KeyArrowRight:
+					conn.Write([]byte("me"))
+					break ioloop
+				}
+			}
 		}
 	}
 }
