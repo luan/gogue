@@ -1,0 +1,20 @@
+X maps shouldn't need to know about player (game should)
+X maps shouldn't have a player (it is a walkable field after all)
+X game ends when goal reached
+X [game moves player] player can move (not to obstacles [i.e. not walkable])
+X floors (Z)
+/ [static-ish methods] maps tiles have properties (walkable?, ...)
+X network play (client/server)
+X port clients to termbox-go
+X asynchronous network communication
+X asynchronous event loop
+well defined protocol (with shared protocol package)
+map from file
+proper logging
+multi-player
+cross compile client
+collision
+keys and doors
+inventory
+uneven maps
+game validates whether player starts on walkable (error if not)
