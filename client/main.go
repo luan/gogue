@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"strings"
@@ -53,6 +54,9 @@ func eventLoop(conn net.Conn) {
 }
 
 func main() {
+	host := flag.String("a", "localhost", "Gogue's server address")
+	flag.Parse()
+
 	err := termbox.Init()
 	if err != nil {
 		panic(err)
@@ -62,7 +66,7 @@ func main() {
 	termbox.HideCursor()
 	termbox.Flush()
 
-	conn, err := net.Dial("tcp", "127.0.0.1:8383")
+	conn, err := net.Dial("tcp", *host+":8383")
 
 	if err != nil {
 		fmt.Println("Cannot conect to the server.")
