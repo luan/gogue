@@ -8,13 +8,19 @@ X network play (client/server)
 X port clients to termbox-go
 X asynchronous network communication
 X asynchronous event loop
+X multi-player
+/ [need readme] cross compile client - need to install go from source
+rewrite server - structure and TDD
 well defined protocol (with shared protocol package)
 map from file
 proper logging
-multi-player
-cross compile client
-collision
 keys and doors
 inventory
-uneven maps
 game validates whether player starts on walkable (error if not)
+authentication
+save state
+creatures (static)
+creatures (AI)
+collision
+battle system (PvM)
+graphical client
