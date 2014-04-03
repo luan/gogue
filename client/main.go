@@ -10,7 +10,9 @@ import (
 )
 
 func showMapSight(mapString string) {
-	for y, row := range strings.Split(mapString, "\n") {
+	mapArray := strings.Split(mapString, "\n")
+
+	for y, row := range mapArray {
 		for x, tile := range []byte(row) {
 			t := rune(tile)
 			fgAtts := termbox.ColorWhite
@@ -21,11 +23,10 @@ func showMapSight(mapString string) {
 				fgAtts = termbox.ColorBlue
 			case '<':
 				fgAtts = termbox.ColorCyan
-			case '*':
-				fgAtts = termbox.AttrBold + termbox.ColorYellow
-				bgAttrs = termbox.ColorBlack
 			case '@':
 				fgAtts = termbox.AttrBold + termbox.ColorGreen
+			case '&':
+				fgAtts = termbox.AttrBold + termbox.ColorMagenta
 			}
 
 			termbox.SetCell(x+5, y+5, t, fgAtts, bgAttrs)

@@ -1,7 +1,6 @@
 package gogue
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -10,29 +9,19 @@ type Map struct {
 	Height int
 	Width  int
 	Depth  int
-	Goal
-	tiles [][][]Tile
+	tiles  [][][]Tile
 }
 
-func NewMap(inputs ...string) (m Map, err error) {
+func NewMap(inputs ...string) *Map {
+	m := new(Map)
 	var tiles [][][]Tile
-	var goal Goal
-	var goalFound bool
 
 	for z, input := range inputs {
 		lines := strings.Split(strings.TrimSpace(input), "\n")
 		tiles = append(tiles, [][]Tile{})
 
-		for y, line := range lines {
+		for _, line := range lines {
 			tiles[z] = append(tiles[z], []Tile(strings.TrimSpace(line)))
-
-			for x, tile := range tiles[z][y] {
-				switch tile {
-				case Tile('*'):
-					goal = Goal{Position{X: x, Y: y, Z: z}}
-					goalFound = true
-				}
-			}
 		}
 	}
 
@@ -41,13 +30,7 @@ func NewMap(inputs ...string) (m Map, err error) {
 	m.Width = len(tiles[0][0])
 	m.tiles = tiles
 
-	if !goalFound {
-		err = errors.New("map requires a Goal(*)")
-	} else {
-		m.Goal = goal
-	}
-
-	return
+	return m
 }
 
 func (m Map) Tiles() [][][]Tile {
@@ -73,6 +56,5 @@ func (m Map) String() string {
 	return fmt.Sprintf("Map{\n\tDimension{%d,%d}\n\t%s\n\t%s\n}",
 		m.Height,
 		m.Width,
-		fmt.Sprint(m.Goal),
 		indent(m.tilesString()))
 }

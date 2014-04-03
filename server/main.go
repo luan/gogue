@@ -4,11 +4,20 @@ import (
 	"fmt"
 	"math"
 	"net"
+	"strconv"
 
 	"github.com/luan/gogue"
 )
 
-var clients uint64
+var totalClients int
+var clients map[string]*Client
+
+type Client struct {
+	Id string
+	*gogue.Game
+	*gogue.Player
+	net.Conn
+}
 
 func distance(a, b gogue.Position) float64 {
 	xDiff := math.Abs(float64(a.X - b.X))
@@ -16,17 +25,29 @@ func distance(a, b gogue.Position) float64 {
 	return math.Sqrt(xDiff*xDiff + yDiff*yDiff)
 }
 
-func sendMapSight(g gogue.Game, light int, conn net.Conn) {
-	tiles := g.Tiles()[g.Player.Z]
+func playerAt(game *gogue.Game, pos gogue.Position) bool {
+	for _, player := range game.Players {
+		if player.X == pos.X && player.Y == pos.Y && player.Z == pos.Z {
+			return true
+		}
+	}
+
+	return false
+}
+
+func sendMapSight(client *Client, light int) {
+	tiles := client.Game.Tiles()[client.Player.Z]
 	mapPacket := ""
 
 	for y, row := range tiles {
 		for x, tile := range row {
-			if x < 0 || x >= g.Width || y < 0 || y >= g.Height ||
-				distance(g.Player.Position, gogue.Position{X: x, Y: y}) > float64(light) {
+			if x < 0 || x >= client.Game.Width || y < 0 || y >= client.Game.Height ||
+				distance(client.Player.Position, gogue.Position{X: x, Y: y}) > float64(light) {
 				mapPacket += " "
-			} else if g.Player.X == x && g.Player.Y == y {
+			} else if client.Player.X == x && client.Player.Y == y {
 				mapPacket += "@"
+			} else if playerAt(client.Game, gogue.Position{x, y, client.Player.Z}) {
+				mapPacket += "&"
 			} else {
 				mapPacket += tile.String()
 			}
@@ -35,58 +56,61 @@ func sendMapSight(g gogue.Game, light int, conn net.Conn) {
 		mapPacket += "\n"
 	}
 
-	conn.Write([]byte(mapPacket))
+	client.Conn.Write([]byte(mapPacket))
 }
 
-func sendOver(conn net.Conn) {
-	conn.Write([]byte("over"))
-}
-
-func handleClient(game gogue.Game, conn net.Conn) {
+func handleClient(client *Client, mapUpdate chan<- bool) {
 	fmt.Println("Client connected.")
 	defer func() {
-		fmt.Println("Client left.")
-		clients--
-		fmt.Printf("Total clients: %d\n", clients)
-		conn.Close()
+		client.Conn.Close()
+		delete(client.Game.Players, client.Player.Guid)
+		delete(clients, client.Id)
+
+		fmt.Printf("Client[%s] - Left\n", client.Player.Guid)
+		fmt.Printf("Total connecetd clients: %d\n", len(clients))
+		mapUpdate <- true
 	}()
 
 	for {
-		sendMapSight(game, 7, conn)
-
-		if game.IsOver() {
-			sendOver(conn)
-			return
-		}
-
 		buf := make([]byte, 4)
-		bytesRead, err := conn.Read(buf)
+		bytesRead, err := client.Conn.Read(buf)
 		if err != nil {
 			return
 		}
 
 		bufString := string(buf[0:bytesRead])
-		fmt.Println("Client(", conn, "): ", bufString)
+		fmt.Printf("Client[%s]: `%s`\n", client.Player.Guid, bufString)
 
 		switch bufString {
 		case "quit":
-			conn.Write([]byte("quit"))
+			client.Conn.Write([]byte("quit"))
+			return
 		case "mn":
-			game, _ = game.MoveNorth()
+			client.Player.MoveNorth()
 		case "ms":
-			game, _ = game.MoveSouth()
+			client.Player.MoveSouth()
 		case "mw":
-			game, _ = game.MoveWest()
+			client.Player.MoveWest()
 		case "me":
-			game, _ = game.MoveEast()
+			client.Player.MoveEast()
+		}
+		mapUpdate <- true
+	}
+}
+
+func handleMapUpdates(clients map[string]*Client, mapUpdate <-chan bool) {
+	for {
+		<-mapUpdate
+		for _, client := range clients {
+			sendMapSight(client, 7)
 		}
 	}
 }
 
 func main() {
-	m, _ := gogue.NewMap(`
+	m := gogue.NewMap(`
 	###############################
-	#.............................#
+	#>............................#
 	############........#.....#...#
 	#...................#.....#...#
 	#........##################...#
@@ -99,7 +123,7 @@ func main() {
 	###############################
 	`, `
 	###############################
-	#*#.###..#....................#
+	#<#.###..#....................#
 	#.#......#.##################.#
 	#.#.#.####.########....######.#
 	#.#.#.............#...........#
@@ -111,12 +135,7 @@ func main() {
 	#........#...#...#............#
 	###############################
 	`)
-	game := gogue.Game{
-		Map: m,
-		Player: gogue.Player{
-			Position: gogue.Position{X: 11, Y: 5, Z: 0},
-		},
-	}
+	game := gogue.NewGame(m)
 
 	ln, err := net.Listen("tcp", ":8383")
 	if err != nil {
@@ -125,14 +144,25 @@ func main() {
 
 	fmt.Println("Listening on port 8383")
 
+	mapUpdate := make(chan bool)
+	clients = make(map[string]*Client)
+
+	go handleMapUpdates(clients, mapUpdate)
+
 	for {
 		conn, err := ln.Accept()
-		clients++
-		fmt.Printf("Total clients: %d\n", clients)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		go handleClient(game, conn)
+		totalClients++
+		clientID := strconv.Itoa(totalClients)
+		player := game.AddPlayer(clientID, gogue.Position{X: 11, Y: 5, Z: 0})
+		client := &Client{clientID, game, player, conn}
+		clients[clientID] = client
+		fmt.Printf("Total connected clients: %d\n", len(clients))
+
+		go handleClient(client, mapUpdate)
+		mapUpdate <- true
 	}
 }
