@@ -58,15 +58,6 @@ func main() {
 	host := flag.String("a", "localhost", "Gogue's server address")
 	flag.Parse()
 
-	err := termbox.Init()
-	if err != nil {
-		panic(err)
-	}
-	defer termbox.Close()
-
-	termbox.HideCursor()
-	termbox.Flush()
-
 	conn, err := net.Dial("tcp", *host+":8383")
 
 	if err != nil {
@@ -75,6 +66,19 @@ func main() {
 	}
 
 	defer conn.Close()
+
+	err = termbox.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		termbox.Close()
+		fmt.Println("Bye bye")
+	}()
+
+	termbox.HideCursor()
+	termbox.Flush()
+
 	go eventLoop(conn)
 
 	for {
@@ -89,9 +93,6 @@ func main() {
 		bufString := string(buf[0:bytesRead])
 
 		switch bufString {
-		case "over":
-			fmt.Println("Congratz, you found the end of the maze!")
-			return
 		case "quit":
 			return
 		default:
