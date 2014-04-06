@@ -19,6 +19,17 @@ func NewPlayer(guid string, mmap *Map, pos Position) *Player {
 	}
 }
 
+func (p *Player) MapSight() (m string) {
+	for _, row := range p.mmap.Tiles()[p.Z] {
+		for _, t := range row {
+			m += t.String()
+		}
+
+		m += "\n"
+	}
+	return
+}
+
 func (p *Player) MoveNorth() error {
 	return p.moveTo(p.North())
 }
