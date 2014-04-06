@@ -5,7 +5,7 @@ import (
 
 	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
-	. "github.com/luan/gogue/server/server"
+	. "github.com/luan/gogue/server"
 	"github.com/luan/gogue/test/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
