@@ -1,6 +1,9 @@
 package server_test
 
 import (
+	"strings"
+
+	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
 	. "github.com/luan/gogue/server/server"
 	"github.com/luan/gogue/test/fakes"
@@ -12,11 +15,21 @@ var _ = Describe("GameServer", func() {
 	var (
 		listener *fakes.Listener
 		gs       *GameServer
+		game     *gogue.Game
 	)
 
 	BeforeEach(func() {
 		listener = fakes.NewListener()
-		gs = NewGameServer(listener)
+		game = gogue.NewGame(gogue.NewMap(`
+		###############
+		#.............#
+		#.............#
+		#.............#
+		#.............#
+		#.............#
+		###############
+		`))
+		gs = NewGameServer(game, listener)
 		go gs.WaitForClients()
 	})
 
@@ -26,9 +39,32 @@ var _ = Describe("GameServer", func() {
 				client := fakes.NewClient()
 				client.Connect(listener)
 
-				Eventually(func() []Client {
+				Eventually(func() []*Client {
 					return gs.Clients
-				}).Should(ContainElement(client))
+				}).Should(HaveLen(1))
+			})
+
+			It("sends the visible map to the connected client", func() {
+				client := fakes.NewClient()
+				client.Connect(listener)
+
+				var packet protocol.MapPortion
+
+				Eventually(func() (ok bool) {
+					if p, err := client.Receive(); err == nil {
+						packet, ok = p.(protocol.MapPortion)
+					}
+					return
+				}).Should(BeTrue())
+
+				Expect(packet).To(Equal(protocol.MapPortion{strings.Replace(`###############
+				#.............#
+				#.............#
+				#.............#
+				#.............#
+				#.............#
+				###############
+				`, "\t", "", -1)}))
 			})
 
 			It("broadcasts its presence to all connected clients", func() {

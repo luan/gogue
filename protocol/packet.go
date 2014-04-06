@@ -9,3 +9,7 @@ type Creature struct {
 type Position struct {
 	X, Y, Z int
 }
+
+type MapPortion struct {
+	Data string
+}
