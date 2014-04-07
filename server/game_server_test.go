@@ -39,9 +39,9 @@ var _ = Describe("GameServer", func() {
 				client := fakes.NewClient()
 				client.Connect(listener)
 
-				Eventually(func() []*Client {
-					return gs.Clients
-				}).Should(HaveLen(1))
+				Eventually(func() int {
+					return gs.Clients.Len()
+				}).Should(Equal(1))
 			})
 
 			It("sends the visible map to the connected client", func() {

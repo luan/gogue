@@ -1,19 +1,20 @@
 package server
 
 import (
+	"container/list"
 	"encoding/gob"
 	"fmt"
 	"net"
 
 	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
-	"github.com/nu7hatch/gouuid"
 )
 
 type GameServer struct {
 	*gogue.Map
 	net.Listener
-	Clients []*Client
+	Clients   *list.List
+	Broadcast chan protocol.Packet
 }
 
 func NewGameServer(m *gogue.Map, l net.Listener) (gs *GameServer) {
@@ -28,23 +29,29 @@ func NewGameServer(m *gogue.Map, l net.Listener) (gs *GameServer) {
 	}
 }
 
-func (gs *GameServer) WaitForClients() {
+func (gs *GameServer) Run() {
+	go gs.ListenBroadcast()
+
 	for {
 		if conn, err := gs.Accept(); err == nil {
-			uuid, _ := uuid.NewV4()
-			newClient := &Client{
-				Player: gs.Game.AddPlayer(uuid.String(), gogue.Position{1, 1, 0}),
-				Conn:   conn,
-			}
-			packet := protocol.Creature{protocol.Position{1, 1, 0}}
-			for _, client := range gs.Clients {
-				client.Send(packet)
-			}
+			client := NewClient(gs.Map, conn, gs.Broadcast)
+			gs.Clients.PushBack(client)
 
-			gs.Clients = append(gs.Clients, newClient)
-			newClient.Send(protocol.MapPortion{newClient.Player.MapSight()})
+			client.Handle()
 		} else {
 			fmt.Println("failed: ", err)
+		}
+	}
+}
+
+func (gs *GameServer) ListenBroadcast() {
+	for {
+		select {
+		case packet := <-gs.Broadcast:
+			for e := gs.Clients.Front(); e != nil; e = e.Next() {
+				client := e.Value.(*Client)
+				client.Send(packet)
+			}
 		}
 	}
 }
