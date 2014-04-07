@@ -11,18 +11,20 @@ import (
 )
 
 type GameServer struct {
-	*gogue.Game
+	*gogue.Map
 	net.Listener
 	Clients []*Client
 }
 
-func NewGameServer(game *gogue.Game, l net.Listener) (gs *GameServer) {
+func NewGameServer(m *gogue.Map, l net.Listener) (gs *GameServer) {
 	gob.Register(protocol.Creature{})
 	gob.Register(protocol.MapPortion{})
 
 	return &GameServer{
-		Game:     game,
-		Listener: l,
+		Map:       m,
+		Listener:  l,
+		Clients:   list.New(),
+		Broadcast: make(chan protocol.Packet),
 	}
 }
 

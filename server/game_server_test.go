@@ -15,12 +15,12 @@ var _ = Describe("GameServer", func() {
 	var (
 		listener *fakes.Listener
 		gs       *GameServer
-		game     *gogue.Game
+		mmap     *gogue.Map
 	)
 
 	BeforeEach(func() {
 		listener = fakes.NewListener()
-		game = gogue.NewGame(gogue.NewMap(`
+		mmap = gogue.NewMap(`
 		###############
 		#.............#
 		#.............#
@@ -28,9 +28,9 @@ var _ = Describe("GameServer", func() {
 		#.............#
 		#.............#
 		###############
-		`))
-		gs = NewGameServer(game, listener)
-		go gs.WaitForClients()
+		`)
+		gs = NewGameServer(mmap, listener)
+		go gs.Run()
 	})
 
 	Describe("client connections", func() {

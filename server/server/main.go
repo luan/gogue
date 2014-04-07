@@ -14,7 +14,6 @@ var clients map[string]*Client
 
 type Client struct {
 	Id string
-	*gogue.Game
 	*gogue.Player
 	net.Conn
 }
@@ -25,8 +24,8 @@ func distance(a, b gogue.Position) float64 {
 	return math.Sqrt(xDiff*xDiff + yDiff*yDiff)
 }
 
-func playerAt(game *gogue.Game, pos gogue.Position) bool {
-	for _, player := range game.Players {
+func playerAt(clients map[string]*Client, pos gogue.Position) bool {
+	for _, player := range clients {
 		if player.X == pos.X && player.Y == pos.Y && player.Z == pos.Z {
 			return true
 		}
@@ -35,18 +34,18 @@ func playerAt(game *gogue.Game, pos gogue.Position) bool {
 	return false
 }
 
-func sendMapSight(client *Client, light int) {
-	tiles := client.Game.Tiles()[client.Player.Z]
+func sendMapSight(clients map[string]*Client, client *Client, light int) {
+	tiles := client.Map.Tiles()[client.Player.Z]
 	mapPacket := ""
 
 	for y, row := range tiles {
 		for x, tile := range row {
-			if x < 0 || x >= client.Game.Width || y < 0 || y >= client.Game.Height ||
+			if x < 0 || x >= client.Map.Width || y < 0 || y >= client.Map.Height ||
 				distance(client.Player.Position, gogue.Position{X: x, Y: y}) > float64(light) {
 				mapPacket += " "
 			} else if client.Player.X == x && client.Player.Y == y {
 				mapPacket += "@"
-			} else if playerAt(client.Game, gogue.Position{x, y, client.Player.Z}) {
+			} else if playerAt(clients, gogue.Position{x, y, client.Player.Z}) {
 				mapPacket += "&"
 			} else {
 				mapPacket += tile.String()
@@ -63,7 +62,6 @@ func handleClient(client *Client, mapUpdate chan<- bool) {
 	fmt.Println("Client connected.")
 	defer func() {
 		client.Conn.Close()
-		delete(client.Game.Players, client.Player.Guid)
 		delete(clients, client.Id)
 
 		fmt.Printf("Client[%s] - Left\n", client.Player.Guid)
@@ -102,7 +100,7 @@ func handleMapUpdates(clients map[string]*Client, mapUpdate <-chan bool) {
 	for {
 		<-mapUpdate
 		for _, client := range clients {
-			sendMapSight(client, 7)
+			sendMapSight(clients, client, 7)
 		}
 	}
 }
@@ -135,7 +133,6 @@ func main() {
 	#........#...#...#............#
 	###############################
 	`)
-	game := gogue.NewGame(m)
 
 	ln, err := net.Listen("tcp", ":8383")
 	if err != nil {
@@ -157,8 +154,8 @@ func main() {
 
 		totalClients++
 		clientID := strconv.Itoa(totalClients)
-		player := game.AddPlayer(clientID, gogue.Position{X: 11, Y: 5, Z: 0})
-		client := &Client{clientID, game, player, conn}
+		player := gogue.NewPlayer(clientID, m, gogue.Position{X: 11, Y: 5, Z: 0})
+		client := &Client{clientID, player, conn}
 		clients[clientID] = client
 		fmt.Printf("Total connected clients: %d\n", len(clients))
 
