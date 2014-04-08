@@ -58,7 +58,7 @@ func (c *Conn) Receive() (p protocol.Packet) {
 	dec := gob.NewDecoder(c.rightBuffer)
 	err := dec.Decode(&p)
 	if err != nil {
-		log.Fatal("decode error:", err)
+		log.Print("decode error:", err)
 	}
 	return
 }

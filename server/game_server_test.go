@@ -25,19 +25,22 @@ var _ = Describe("GameServer", func() {
 
 	Describe("client connections", func() {
 		Context("when a new client connects", func() {
-			It("sends the visible map to the connected client", func() {
+			It("sends the visible map to the connected client", func(done Done) {
 				client := fakes.NewClient()
 				client.Connect(listener)
-				Expect(client.Receive()).To(BeAssignableToTypeOf(protocol.MapPortion{}))
+				Eventually(client.Receive).Should(BeAssignableToTypeOf(protocol.MapPortion{}))
+				close(done)
 			})
 
-			It("broadcasts its presence to all connected clients", func() {
+			It("broadcasts its presence to all connected clients", func(done Done) {
 				client1 := fakes.NewClient()
 				client1.Connect(listener)
 				client2 := fakes.NewClient()
 				client2.Connect(listener)
 
-				Expect(client1.Receive()).To(Equal(protocol.Creature{protocol.Position{1, 1, 0}}))
+				Eventually(client1.Receive).Should(
+					Equal(protocol.Creature{protocol.Position{1, 1, 0}}))
+				close(done)
 			})
 		})
 	})

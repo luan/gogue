@@ -2,7 +2,7 @@ package server
 
 import (
 	"container/list"
-	"fmt"
+	"log"
 	"net"
 
 	"github.com/luan/gogue"
@@ -39,7 +39,7 @@ func (gs *GameServer) Run() {
 			go client.Run()
 			go na.Listen()
 		} else {
-			fmt.Println("failed: ", err)
+			log.Print("failed: ", err)
 		}
 	}
 }
@@ -49,8 +49,8 @@ func (gs *GameServer) handleClients() {
 		select {
 		case packet := <-gs.Broadcast:
 			for e := gs.Clients.Front(); e != nil; e = e.Next() {
-				client := e.Value.(*Client)
-				client.Outgoing <- packet
+				cl := e.Value.(*Client)
+				cl.Outgoing <- packet
 			}
 		case client := <-gs.newClients:
 			gs.Clients.PushBack(client)

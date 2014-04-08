@@ -34,7 +34,7 @@ func (na *NetworkAdapter) Listen() {
 
 func (na *NetworkAdapter) Read(p Packet) bool {
 	if err := na.Decode(p); err != nil {
-		log.Fatal("decode error:", err)
+		log.Print("decode error:", err)
 		na.Close()
 		return false
 	}
@@ -52,7 +52,7 @@ func (na *NetworkAdapter) handleOutgoing() {
 	for {
 		p := <-na.out
 		if err := na.Encode(&p); err != nil {
-			log.Fatal("encode error:", err)
+			log.Print("encode error:", err)
 		}
 	}
 }

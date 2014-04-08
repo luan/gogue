@@ -15,12 +15,11 @@ type Client struct {
 
 func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 	uuid, _ := uuid.NewV4()
-	in, out := make(chan protocol.Packet), make(chan protocol.Packet)
 	return &Client{
 		Player:    gogue.NewPlayer(uuid.String(), mmap, gogue.Position{1, 1, 0}),
 		Broadcast: broadcast,
-		Outgoing:  out,
-		Incoming:  in,
+		Outgoing:  make(chan protocol.Packet),
+		Incoming:  make(chan protocol.Packet),
 	}
 }
 
@@ -28,11 +27,17 @@ func (c *Client) Run() {
 	c.init()
 }
 
+func (c *Client) CreaturePacket() protocol.Packet {
+	return protocol.Creature{
+		protocol.Position(c.Player.Position),
+	}
+}
+
 func (c *Client) init() {
 	for i := 0; i < 2; i++ {
 		select {
 		case c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}:
-		case c.Broadcast <- protocol.Creature{protocol.Position(c.Player.Position)}:
+		case c.Broadcast <- c.CreaturePacket():
 		}
 	}
 }
