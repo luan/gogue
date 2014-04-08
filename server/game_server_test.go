@@ -1,8 +1,6 @@
 package server_test
 
 import (
-	"strings"
-
 	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
 	. "github.com/luan/gogue/server"
@@ -20,51 +18,17 @@ var _ = Describe("GameServer", func() {
 
 	BeforeEach(func() {
 		listener = fakes.NewListener()
-		mmap = gogue.NewMap(`
-		###############
-		#.............#
-		#.............#
-		#.............#
-		#.............#
-		#.............#
-		###############
-		`)
+		mmap = gogue.NewMap("#...#\n#...#")
 		gs = NewGameServer(mmap, listener)
 		go gs.Run()
 	})
 
 	Describe("client connections", func() {
 		Context("when a new client connects", func() {
-			It("adds the client to the client list", func() {
-				client := fakes.NewClient()
-				client.Connect(listener)
-
-				Eventually(func() int {
-					return gs.Clients.Len()
-				}).Should(Equal(1))
-			})
-
 			It("sends the visible map to the connected client", func() {
 				client := fakes.NewClient()
 				client.Connect(listener)
-
-				var packet protocol.MapPortion
-
-				Eventually(func() (ok bool) {
-					if p, err := client.Receive(); err == nil {
-						packet, ok = p.(protocol.MapPortion)
-					}
-					return
-				}).Should(BeTrue())
-
-				Expect(packet).To(Equal(protocol.MapPortion{strings.Replace(`###############
-				#.............#
-				#.............#
-				#.............#
-				#.............#
-				#.............#
-				###############
-				`, "\t", "", -1)}))
+				Expect(client.Receive()).To(BeAssignableToTypeOf(protocol.MapPortion{}))
 			})
 
 			It("broadcasts its presence to all connected clients", func() {
@@ -73,16 +37,7 @@ var _ = Describe("GameServer", func() {
 				client2 := fakes.NewClient()
 				client2.Connect(listener)
 
-				var packet protocol.Creature
-
-				Eventually(func() (ok bool) {
-					if p, err := client1.Receive(); err == nil {
-						packet, ok = p.(protocol.Creature)
-					}
-					return
-				}).Should(BeTrue())
-
-				Expect(packet).To(Equal(protocol.Creature{protocol.Position{1, 1, 0}}))
+				Expect(client1.Receive()).To(Equal(protocol.Creature{protocol.Position{1, 1, 0}}))
 			})
 		})
 	})

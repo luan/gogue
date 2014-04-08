@@ -1,10 +1,6 @@
 package server
 
 import (
-	"encoding/gob"
-	"log"
-	"net"
-
 	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
 	"github.com/nu7hatch/gouuid"
@@ -12,29 +8,31 @@ import (
 
 type Client struct {
 	*gogue.Player
-	net.Conn
-	Broadcast chan protocol.Packet
+	Broadcast chan<- protocol.Packet
+	Outgoing  chan protocol.Packet
+	Incoming  chan protocol.Packet
 }
 
-func NewClient(mmap *gogue.Map, conn net.Conn, broadcast chan protocol.Packet) *Client {
+func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 	uuid, _ := uuid.NewV4()
+	in, out := make(chan protocol.Packet), make(chan protocol.Packet)
 	return &Client{
 		Player:    gogue.NewPlayer(uuid.String(), mmap, gogue.Position{1, 1, 0}),
-		Conn:      conn,
 		Broadcast: broadcast,
+		Outgoing:  out,
+		Incoming:  in,
 	}
 }
 
-func (c *Client) Handle() {
-	c.Broadcast <- protocol.Creature{protocol.Position(c.Player.Position)}
-	c.Send(protocol.MapPortion{c.Player.MapSight()})
+func (c *Client) Run() {
+	c.init()
 }
 
-func (c *Client) Send(p protocol.Packet) (err error) {
-	enc := gob.NewEncoder(c)
-	err = enc.Encode(&p)
-	if err != nil {
-		log.Fatal("encode error:", err)
+func (c *Client) init() {
+	for i := 0; i < 2; i++ {
+		select {
+		case c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}:
+		case c.Broadcast <- protocol.Creature{protocol.Position(c.Player.Position)}:
+		}
 	}
-	return
 }

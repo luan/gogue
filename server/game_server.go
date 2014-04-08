@@ -2,7 +2,6 @@ package server
 
 import (
 	"container/list"
-	"encoding/gob"
 	"fmt"
 	"net"
 
@@ -13,45 +12,48 @@ import (
 type GameServer struct {
 	*gogue.Map
 	net.Listener
-	Clients   *list.List
-	Broadcast chan protocol.Packet
+	Clients    *list.List
+	Broadcast  chan protocol.Packet
+	newClients chan *Client
 }
 
 func NewGameServer(m *gogue.Map, l net.Listener) (gs *GameServer) {
-	gob.Register(protocol.Creature{})
-	gob.Register(protocol.MapPortion{})
-
 	return &GameServer{
-		Map:       m,
-		Listener:  l,
-		Clients:   list.New(),
-		Broadcast: make(chan protocol.Packet),
+		Map:        m,
+		Listener:   l,
+		Clients:    list.New(),
+		Broadcast:  make(chan protocol.Packet),
+		newClients: make(chan *Client),
 	}
 }
 
 func (gs *GameServer) Run() {
-	go gs.ListenBroadcast()
+	go gs.handleClients()
 
 	for {
 		if conn, err := gs.Accept(); err == nil {
-			client := NewClient(gs.Map, conn, gs.Broadcast)
-			gs.Clients.PushBack(client)
+			client := NewClient(gs.Map, gs.Broadcast)
+			na := protocol.NewNetworkAdapter(client.Incoming, client.Outgoing, conn)
+			gs.newClients <- client
 
-			client.Handle()
+			go client.Run()
+			go na.Listen()
 		} else {
 			fmt.Println("failed: ", err)
 		}
 	}
 }
 
-func (gs *GameServer) ListenBroadcast() {
+func (gs *GameServer) handleClients() {
 	for {
 		select {
 		case packet := <-gs.Broadcast:
 			for e := gs.Clients.Front(); e != nil; e = e.Next() {
 				client := e.Value.(*Client)
-				client.Send(packet)
+				client.Outgoing <- packet
 			}
+		case client := <-gs.newClients:
+			gs.Clients.PushBack(client)
 		}
 	}
 }
