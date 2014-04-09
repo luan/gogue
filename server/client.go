@@ -1,6 +1,8 @@
 package server
 
 import (
+	"log"
+
 	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
 	"github.com/nu7hatch/gouuid"
@@ -24,6 +26,7 @@ func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 }
 
 func (c *Client) Run() {
+	go c.listen()
 	c.init()
 }
 
@@ -42,4 +45,14 @@ func (c *Client) init() {
 	go func() {
 		c.Broadcast <- c.CreaturePacket()
 	}()
+}
+
+func (c *Client) listen() {
+	for {
+		p := <-c.Incoming
+		switch t := p.(type) {
+		default:
+			log.Print("received unknown packet: ", t)
+		}
+	}
 }
