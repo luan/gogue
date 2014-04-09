@@ -28,7 +28,8 @@ var _ = Describe("GameServer", func() {
 			It("sends the visible map to the connected client", func(done Done) {
 				client := fakes.NewClient()
 				client.Connect(listener)
-				Eventually(client.Receive).Should(BeAssignableToTypeOf(protocol.MapPortion{}))
+				Eventually(client.Receive).Should(
+					BeAssignableToTypeOf(protocol.MapPortion{}))
 				close(done)
 			})
 

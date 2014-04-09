@@ -34,10 +34,10 @@ func (c *Client) CreaturePacket() protocol.Packet {
 }
 
 func (c *Client) init() {
-	for i := 0; i < 2; i++ {
-		select {
-		case c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}:
-		case c.Broadcast <- c.CreaturePacket():
-		}
-	}
+	go func() {
+		c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}
+	}()
+	go func() {
+		c.Broadcast <- c.CreaturePacket()
+	}()
 }

@@ -24,7 +24,9 @@ var _ = Describe("Client", func() {
 
 	Describe("when connecting", func() {
 		It("broadcasts its location", func(done Done) {
-			Expect(<-broadcast).To(Equal(protocol.Creature{protocol.Position{1, 1, 0}}))
+			Eventually(func() protocol.Packet {
+				return <-broadcast
+			}).Should(Equal(client.CreaturePacket()))
 			close(done)
 		})
 
