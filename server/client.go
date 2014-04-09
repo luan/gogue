@@ -37,6 +37,7 @@ func (c *Client) CreaturePacket() protocol.Creature {
 func (c *Client) init() {
 	go func() {
 		c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}
+		c.Outgoing <- c.CreaturePacket()
 	}()
 	go func() {
 		c.Broadcast <- c.CreaturePacket()
