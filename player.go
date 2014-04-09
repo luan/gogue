@@ -6,14 +6,14 @@ import (
 )
 
 type Player struct {
-	Guid string
+	UUID string
 	Position
 	Map *Map
 }
 
-func NewPlayer(guid string, Map *Map, pos Position) *Player {
+func NewPlayer(uuid string, Map *Map, pos Position) *Player {
 	return &Player{
-		Guid:     guid,
+		UUID:     uuid,
 		Position: pos,
 		Map:      Map,
 	}
