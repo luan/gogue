@@ -14,3 +14,14 @@ type Position struct {
 type MapPortion struct {
 	Data string
 }
+
+const (
+	North = "n"
+	South = "s"
+	East  = "e"
+	West  = "w"
+)
+
+type Walk struct {
+	Direction string
+}

@@ -46,6 +46,39 @@ var _ = Describe("Client", func() {
 				return <-client.Outgoing
 			}).Should(Equal(protocol.MapPortion{"...\n...\n...\n"}))
 			close(done)
+		})
+	})
+
+	Describe("walking", func() {
+		It("updates its location", func(done Done) {
+			client.Incoming <- protocol.Walk{protocol.North}
+			Eventually(func() protocol.Position {
+				return client.CreaturePacket().Position
+			}).Should(Equal(protocol.Position{1, 0, 0}))
+			close(done)
+		})
+
+		It("broadcasts its new location", func(done Done) {
+			client.Incoming <- protocol.Walk{protocol.East}
+			Eventually(func() protocol.Position {
+				return client.CreaturePacket().Position
+			}).Should(Equal(protocol.Position{2, 1, 0}))
+
+			Eventually(func() protocol.Packet {
+				return <-broadcast
+			}).Should(Equal(client.CreaturePacket()))
+			close(done)
+		})
+
+		It("receives its new location", func(done Done) {
+			client.Incoming <- protocol.Walk{protocol.West}
+			Eventually(func() protocol.Position {
+				return client.CreaturePacket().Position
+			}).Should(Equal(protocol.Position{0, 1, 0}))
+
+			Eventually(func() protocol.Packet {
+				return <-client.Outgoing
+			}).Should(Equal(client.CreaturePacket()))
 			close(done)
 		})
 	})

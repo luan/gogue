@@ -51,8 +51,25 @@ func (c *Client) listen() {
 	for {
 		p := <-c.Incoming
 		switch t := p.(type) {
+		case protocol.Walk:
+			c.processWalk(p.(protocol.Walk))
 		default:
 			log.Print("received unknown packet: ", t)
 		}
 	}
+}
+
+func (c *Client) processWalk(p protocol.Walk) {
+	switch p.Direction {
+	case protocol.North:
+		c.Player.MoveNorth()
+	case protocol.South:
+		c.Player.MoveSouth()
+	case protocol.East:
+		c.Player.MoveEast()
+	case protocol.West:
+		c.Player.MoveWest()
+	}
+	c.Broadcast <- c.CreaturePacket()
+	c.Outgoing <- c.CreaturePacket()
 }
