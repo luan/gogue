@@ -3,6 +3,7 @@ package protocol
 type Packet interface{}
 
 type Creature struct {
+	UUID string
 	Position
 }
 

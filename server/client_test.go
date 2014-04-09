@@ -22,6 +22,17 @@ var _ = Describe("Client", func() {
 		go client.Run()
 	})
 
+	Describe("CreaturePacket", func() {
+		It("has the players UUID", func() {
+			Expect(client.CreaturePacket().UUID).To(Equal(client.Player.UUID))
+		})
+
+		It("has the players Position", func() {
+			Expect(client.CreaturePacket().Position).To(
+				Equal(protocol.Position(client.Player.Position)))
+		})
+	})
+
 	Describe("when connecting", func() {
 		It("broadcasts its location", func(done Done) {
 			Eventually(func() protocol.Packet {

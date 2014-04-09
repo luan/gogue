@@ -40,7 +40,7 @@ var _ = Describe("GameServer", func() {
 				client2.Connect(listener)
 
 				Eventually(client1.Receive).Should(
-					Equal(protocol.Creature{protocol.Position{1, 1, 0}}))
+					BeAssignableToTypeOf(protocol.Creature{}))
 				close(done)
 			})
 		})

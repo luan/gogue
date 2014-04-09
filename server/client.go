@@ -27,9 +27,10 @@ func (c *Client) Run() {
 	c.init()
 }
 
-func (c *Client) CreaturePacket() protocol.Packet {
+func (c *Client) CreaturePacket() protocol.Creature {
 	return protocol.Creature{
-		protocol.Position(c.Player.Position),
+		UUID:     c.Player.UUID,
+		Position: protocol.Position(c.Player.Position),
 	}
 }
 
