@@ -13,6 +13,7 @@ type Client struct {
 	Broadcast chan<- protocol.Packet
 	Outgoing  chan protocol.Packet
 	Incoming  chan protocol.Packet
+	Quit      chan bool
 }
 
 func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
@@ -22,6 +23,7 @@ func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 		Broadcast: broadcast,
 		Outgoing:  make(chan protocol.Packet),
 		Incoming:  make(chan protocol.Packet),
+		Quit:      make(chan bool),
 	}
 }
 
@@ -48,11 +50,17 @@ func (c *Client) init() {
 }
 
 func (c *Client) listen() {
+	defer func() {
+		close(c.Quit)
+	}()
+
 	for {
 		p := <-c.Incoming
 		switch t := p.(type) {
 		case protocol.Walk:
 			c.processWalk(p.(protocol.Walk))
+		case protocol.Quit:
+			return
 		default:
 			log.Print("received unknown packet: ", t)
 		}

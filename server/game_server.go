@@ -30,11 +30,12 @@ func (gs *GameServer) Run() {
 	for {
 		if conn, err := gs.Accept(); err == nil {
 			cl := NewClient(gs.Map, gs.Broadcast)
-			na := protocol.NewNetworkAdapter(cl.Incoming, cl.Outgoing, conn)
+			na := protocol.NewNetworkAdapter(cl.Incoming, cl.Outgoing, cl.Quit, conn)
 			gs.Clients[cl.UUID] = cl
 
 			go cl.Run()
 			go na.Listen()
+			go gs.handleQuit(cl)
 		} else {
 			log.Print("failed: ", err)
 		}
@@ -50,4 +51,10 @@ func (gs *GameServer) handleClients() {
 			}
 		}
 	}
+}
+
+func (gs *GameServer) handleQuit(cl *Client) {
+	<-cl.Quit
+	delete(gs.Clients, cl.UUID)
+	gs.Broadcast <- protocol.RemoveCreature{cl.UUID}
 }

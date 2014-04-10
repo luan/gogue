@@ -10,13 +10,15 @@ import (
 
 var _ = Describe("Client", func() {
 	var (
-		mmap      *gogue.Map
 		broadcast chan protocol.Packet
 		client    *Client
+		mmap      *gogue.Map
+		quit      chan bool
 	)
 
 	BeforeEach(func() {
 		broadcast = make(chan protocol.Packet)
+		quit = make(chan bool)
 		mmap = gogue.NewMap("...\n...\n...")
 		client = NewClient(mmap, broadcast)
 		go client.Run()
@@ -45,6 +47,18 @@ var _ = Describe("Client", func() {
 			Eventually(func() protocol.Packet {
 				return <-client.Outgoing
 			}).Should(Equal(protocol.MapPortion{"...\n...\n...\n"}))
+			close(done)
+		})
+	})
+
+	Describe("logging out", func() {
+		BeforeEach(func(done Done) {
+			client.Incoming <- protocol.Quit{}
+			close(done)
+		})
+
+		It("closes the quit channel", func(done Done) {
+			Eventually(client.Quit).Should(BeClosed())
 			close(done)
 		})
 	})

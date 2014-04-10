@@ -10,15 +10,18 @@ type NetworkAdapter struct {
 	net.Conn
 	*gob.Encoder
 	*gob.Decoder
-	in  chan<- Packet
-	out <-chan Packet
+	in   chan<- Packet
+	out  <-chan Packet
+	quit chan bool
 }
 
-func NewNetworkAdapter(in chan<- Packet, out <-chan Packet, conn net.Conn) *NetworkAdapter {
+func NewNetworkAdapter(in chan<- Packet, out <-chan Packet, quit chan bool, conn net.Conn) *NetworkAdapter {
 	gob.Register(Creature{})
 	gob.Register(MapPortion{})
+	gob.Register(RemoveCreature{})
 
 	gob.Register(Walk{})
+	gob.Register(Quit{})
 
 	return &NetworkAdapter{
 		Conn:    conn,
@@ -26,6 +29,7 @@ func NewNetworkAdapter(in chan<- Packet, out <-chan Packet, conn net.Conn) *Netw
 		Decoder: gob.NewDecoder(conn),
 		in:      in,
 		out:     out,
+		quit:    quit,
 	}
 }
 
@@ -37,11 +41,11 @@ func (na *NetworkAdapter) Listen() {
 func (na *NetworkAdapter) read(p Packet) bool {
 	if err := na.Decode(p); err != nil {
 		if err.Error() == "EOF" {
-		na.Close()
-		return false
+			na.Close()
+			return false
 		} else {
 			log.Print("[protocol.NetworkAdapter] decode error:", err)
-	}
+		}
 	}
 	return true
 }
@@ -54,12 +58,16 @@ func (na *NetworkAdapter) handleIncoming() {
 }
 
 func (na *NetworkAdapter) handleOutgoing() {
+	defer na.Close()
+
 	for {
 		select {
 		case p := <-na.out:
-		if err := na.Encode(&p); err != nil {
+			if err := na.Encode(&p); err != nil {
 				log.Print("[protocol.NetworkAdapter] encode error:", err)
 			}
+		case <-na.quit:
+			return
 		}
 	}
 }

@@ -44,5 +44,23 @@ var _ = Describe("GameServer", func() {
 				close(done)
 			})
 		})
+
+		Context("when a client disconnects", func() {
+			It("forgets about the client and stops broadcasting to it", func(done Done) {
+				client1 := fakes.NewClient()
+				client1.Connect(listener)
+				client2 := fakes.NewClient()
+				client2.Connect(listener)
+
+				client1.Send(protocol.Quit{})
+
+				Eventually(client2.Receive).Should(BeAssignableToTypeOf(protocol.RemoveCreature{}))
+
+				client2.Send(protocol.Walk{protocol.East})
+
+				Eventually(client1.Receive).Should(BeNil())
+				close(done)
+			})
+		})
 	})
 })

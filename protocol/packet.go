@@ -7,6 +7,10 @@ type Creature struct {
 	Position
 }
 
+type RemoveCreature struct {
+	UUID string
+}
+
 type Position struct {
 	X, Y, Z int
 }
@@ -25,3 +29,5 @@ const (
 type Walk struct {
 	Direction string
 }
+
+type Quit struct{}
