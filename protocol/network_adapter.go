@@ -18,6 +18,8 @@ func NewNetworkAdapter(in chan<- Packet, out <-chan Packet, conn net.Conn) *Netw
 	gob.Register(Creature{})
 	gob.Register(MapPortion{})
 
+	gob.Register(Walk{})
+
 	return &NetworkAdapter{
 		Conn:    conn,
 		Encoder: gob.NewEncoder(conn),
