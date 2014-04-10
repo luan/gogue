@@ -2,7 +2,6 @@ package fakes
 
 import (
 	"encoding/gob"
-	"log"
 	"net"
 	"time"
 
@@ -10,20 +9,20 @@ import (
 )
 
 type Conn struct {
-	leftBuffer  net.Conn
-	rightBuffer net.Conn
+	serverBuffer net.Conn
+	clientBuffer net.Conn
 }
 
 func NewConn() *Conn {
-	leftBuffer, rightBuffer := net.Pipe()
+	serverBuffer, clientBuffer := net.Pipe()
 	return &Conn{
-		leftBuffer:  leftBuffer,
-		rightBuffer: rightBuffer,
+		serverBuffer: serverBuffer,
+		clientBuffer: clientBuffer,
 	}
 }
 
 func (c *Conn) Close() (err error) {
-	return
+	return c.clientBuffer.Close()
 }
 
 func (c *Conn) LocalAddr() (addr net.Addr) {
@@ -47,18 +46,20 @@ func (c *Conn) SetWriteDeadline(t time.Time) (err error) {
 }
 
 func (c *Conn) Read(bytes []byte) (int, error) {
-	return c.leftBuffer.Read(bytes)
+	return c.serverBuffer.Read(bytes)
 }
 
 func (c *Conn) Write(bytes []byte) (int, error) {
-	return c.leftBuffer.Write(bytes)
+	return c.serverBuffer.Write(bytes)
+}
+
+func (c *Conn) Send(p protocol.Packet) {
+	enc := gob.NewEncoder(c.clientBuffer)
+	enc.Encode(&p)
 }
 
 func (c *Conn) Receive() (p protocol.Packet) {
-	dec := gob.NewDecoder(c.rightBuffer)
-	err := dec.Decode(&p)
-	if err != nil {
-		log.Print("decode error:", err)
-	}
+	dec := gob.NewDecoder(c.clientBuffer)
+	dec.Decode(&p)
 	return
 }
