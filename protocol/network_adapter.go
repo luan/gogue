@@ -32,7 +32,7 @@ func (na *NetworkAdapter) Listen() {
 	go na.handleIncoming()
 }
 
-func (na *NetworkAdapter) Read(p Packet) bool {
+func (na *NetworkAdapter) read(p Packet) bool {
 	if err := na.Decode(p); err != nil {
 		log.Print("decode error:", err)
 		na.Close()
@@ -43,7 +43,7 @@ func (na *NetworkAdapter) Read(p Packet) bool {
 
 func (na *NetworkAdapter) handleIncoming() {
 	var p Packet
-	for na.Read(&p) {
+	for na.read(&p) {
 		na.in <- p
 	}
 }
