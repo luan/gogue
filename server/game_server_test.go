@@ -52,12 +52,13 @@ var _ = Describe("GameServer", func() {
 				client2 := fakes.NewClient()
 				client2.Connect(listener)
 
-				client1.Send(protocol.Quit{})
+				Eventually(client1.Receive).Should(BeAssignableToTypeOf(protocol.Creature{}))
+				Eventually(client2.Receive).Should(BeAssignableToTypeOf(protocol.Creature{}))
 
+				client1.Send(protocol.Quit{})
 				Eventually(client2.Receive).Should(BeAssignableToTypeOf(protocol.RemoveCreature{}))
 
 				client2.Send(protocol.Walk{protocol.East})
-
 				Eventually(client1.Receive).Should(BeNil())
 				close(done)
 			})

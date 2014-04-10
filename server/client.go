@@ -28,8 +28,8 @@ func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 }
 
 func (c *Client) Run() {
-	go c.listen()
 	c.init()
+	go c.listen()
 }
 
 func (c *Client) CreaturePacket() protocol.Creature {
@@ -40,13 +40,9 @@ func (c *Client) CreaturePacket() protocol.Creature {
 }
 
 func (c *Client) init() {
-	go func() {
-		c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}
-		c.Outgoing <- c.CreaturePacket()
-	}()
-	go func() {
-		c.Broadcast <- c.CreaturePacket()
-	}()
+	c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}
+	c.Outgoing <- c.CreaturePacket()
+	c.Broadcast <- c.CreaturePacket()
 }
 
 func (c *Client) listen() {

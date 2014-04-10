@@ -37,6 +37,8 @@ var _ = Describe("Client", func() {
 
 	Describe("when connecting", func() {
 		It("broadcasts its location", func(done Done) {
+			<-client.Outgoing
+			<-client.Outgoing
 			Eventually(func() protocol.Packet {
 				return <-broadcast
 			}).Should(Equal(client.CreaturePacket()))
@@ -51,49 +53,47 @@ var _ = Describe("Client", func() {
 		})
 	})
 
-	Describe("logging out", func() {
+	Context("after connected", func() {
 		BeforeEach(func(done Done) {
-			client.Incoming <- protocol.Quit{}
+			<-client.Outgoing
+			<-client.Outgoing
+			<-broadcast
 			close(done)
 		})
 
-		It("closes the quit channel", func(done Done) {
-			Eventually(client.Quit).Should(BeClosed())
-			close(done)
-		})
-	})
+		Describe("logging out", func() {
+			BeforeEach(func(done Done) {
+				client.Incoming <- protocol.Quit{}
+				close(done)
+			})
 
-	Describe("walking", func() {
-		It("updates its location", func(done Done) {
-			client.Incoming <- protocol.Walk{protocol.North}
-			Eventually(func() protocol.Position {
-				return client.CreaturePacket().Position
-			}).Should(Equal(protocol.Position{1, 0, 0}))
-			close(done)
+			It("closes the quit channel", func(done Done) {
+				Eventually(client.Quit).Should(BeClosed())
+				close(done)
+			})
 		})
 
-		It("broadcasts its new location", func(done Done) {
-			client.Incoming <- protocol.Walk{protocol.East}
-			Eventually(func() protocol.Position {
-				return client.CreaturePacket().Position
-			}).Should(Equal(protocol.Position{2, 1, 0}))
+		Describe("walking", func() {
+			It("broadcasts its new location", func(done Done) {
+				client.Incoming <- protocol.Walk{protocol.East}
+				Expect(<-broadcast).To(Equal(protocol.Creature{
+					UUID:     client.UUID,
+					Position: protocol.Position{2, 1, 0},
+				}))
+				close(done)
+			})
 
-			Eventually(func() protocol.Packet {
-				return <-broadcast
-			}).Should(Equal(client.CreaturePacket()))
-			close(done)
-		})
+			It("receives its new location", func(done Done) {
+				client.Incoming <- protocol.Walk{protocol.West}
 
-		It("receives its new location", func(done Done) {
-			client.Incoming <- protocol.Walk{protocol.West}
-			Eventually(func() protocol.Position {
-				return client.CreaturePacket().Position
-			}).Should(Equal(protocol.Position{0, 1, 0}))
+				<-broadcast
 
-			Eventually(func() protocol.Packet {
-				return <-client.Outgoing
-			}).Should(Equal(client.CreaturePacket()))
-			close(done)
+				Expect(<-client.Outgoing).To(Equal(protocol.Creature{
+					UUID:     client.UUID,
+					Position: protocol.Position{0, 1, 0},
+				}))
+				close(done)
+			})
 		})
 	})
 })
