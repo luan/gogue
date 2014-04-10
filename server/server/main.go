@@ -64,7 +64,7 @@ func handleClient(client *Client, mapUpdate chan<- bool) {
 		client.Conn.Close()
 		delete(clients, client.Id)
 
-		fmt.Printf("Client[%s] - Left\n", client.Player.Guid)
+		fmt.Printf("Client[%s] - Left\n", client.Player.UUID)
 		fmt.Printf("Total connecetd clients: %d\n", len(clients))
 		mapUpdate <- true
 	}()
@@ -77,7 +77,7 @@ func handleClient(client *Client, mapUpdate chan<- bool) {
 		}
 
 		bufString := string(buf[0:bytesRead])
-		fmt.Printf("Client[%s]: `%s`\n", client.Player.Guid, bufString)
+		fmt.Printf("Client[%s]: `%s`\n", client.Player.UUID, bufString)
 
 		switch bufString {
 		case "quit":
