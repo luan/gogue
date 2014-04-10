@@ -1,7 +1,6 @@
 package server
 
 import (
-	"container/list"
 	"log"
 	"net"
 
@@ -12,18 +11,16 @@ import (
 type GameServer struct {
 	*gogue.Map
 	net.Listener
-	Clients    *list.List
-	Broadcast  chan protocol.Packet
-	newClients chan *Client
+	Clients   map[string]*Client
+	Broadcast chan protocol.Packet
 }
 
 func NewGameServer(m *gogue.Map, l net.Listener) (gs *GameServer) {
 	return &GameServer{
-		Map:        m,
-		Listener:   l,
-		Clients:    list.New(),
-		Broadcast:  make(chan protocol.Packet),
-		newClients: make(chan *Client),
+		Map:       m,
+		Listener:  l,
+		Clients:   make(map[string]*Client),
+		Broadcast: make(chan protocol.Packet),
 	}
 }
 
@@ -32,11 +29,11 @@ func (gs *GameServer) Run() {
 
 	for {
 		if conn, err := gs.Accept(); err == nil {
-			client := NewClient(gs.Map, gs.Broadcast)
-			na := protocol.NewNetworkAdapter(client.Incoming, client.Outgoing, conn)
-			gs.newClients <- client
+			cl := NewClient(gs.Map, gs.Broadcast)
+			na := protocol.NewNetworkAdapter(cl.Incoming, cl.Outgoing, conn)
+			gs.Clients[cl.UUID] = cl
 
-			go client.Run()
+			go cl.Run()
 			go na.Listen()
 		} else {
 			log.Print("failed: ", err)
@@ -48,12 +45,9 @@ func (gs *GameServer) handleClients() {
 	for {
 		select {
 		case packet := <-gs.Broadcast:
-			for e := gs.Clients.Front(); e != nil; e = e.Next() {
-				cl := e.Value.(*Client)
+			for _, cl := range gs.Clients {
 				cl.Outgoing <- packet
 			}
-		case client := <-gs.newClients:
-			gs.Clients.PushBack(client)
 		}
 	}
 }
