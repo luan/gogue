@@ -36,9 +36,12 @@ func (na *NetworkAdapter) Listen() {
 
 func (na *NetworkAdapter) read(p Packet) bool {
 	if err := na.Decode(p); err != nil {
-		log.Print("decode error:", err)
+		if err.Error() == "EOF" {
 		na.Close()
 		return false
+		} else {
+			log.Print("[protocol.NetworkAdapter] decode error:", err)
+	}
 	}
 	return true
 }
@@ -52,9 +55,11 @@ func (na *NetworkAdapter) handleIncoming() {
 
 func (na *NetworkAdapter) handleOutgoing() {
 	for {
-		p := <-na.out
+		select {
+		case p := <-na.out:
 		if err := na.Encode(&p); err != nil {
-			log.Print("encode error:", err)
+				log.Print("[protocol.NetworkAdapter] encode error:", err)
+			}
 		}
 	}
 }
