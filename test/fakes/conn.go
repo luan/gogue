@@ -3,6 +3,7 @@ package fakes
 import (
 	"encoding/gob"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/luan/gogue/protocol"
@@ -11,6 +12,8 @@ import (
 type Conn struct {
 	serverBuffer net.Conn
 	clientBuffer net.Conn
+	closed       bool
+	closedMutex  sync.Mutex
 }
 
 func NewConn() *Conn {
@@ -22,7 +25,16 @@ func NewConn() *Conn {
 }
 
 func (c *Conn) Close() (err error) {
+	c.closedMutex.Lock()
+	c.closed = true
+	c.closedMutex.Unlock()
 	return c.clientBuffer.Close()
+}
+
+func (c *Conn) Closed() bool {
+	c.closedMutex.Lock()
+	defer c.closedMutex.Unlock()
+	return c.closed
 }
 
 func (c *Conn) LocalAddr() (addr net.Addr) {
