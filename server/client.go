@@ -19,7 +19,7 @@ type Client struct {
 func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 	uuid, _ := uuid.NewV4()
 	return &Client{
-		Player:    gogue.NewPlayer(uuid.String(), mmap, gogue.Position{1, 1, 0}),
+		Player:    gogue.NewPlayer(uuid.String(), mmap, gogue.Position{X: 1, Y: 1, Z: 0}),
 		Broadcast: broadcast,
 		Outgoing:  make(chan protocol.Packet),
 		Incoming:  make(chan protocol.Packet),
@@ -40,8 +40,7 @@ func (c *Client) CreaturePacket() protocol.Creature {
 }
 
 func (c *Client) init() {
-	c.Outgoing <- protocol.MapPortion{c.Player.MapSight()}
-	c.Outgoing <- c.CreaturePacket()
+	c.Outgoing <- protocol.MapPortion{Data: c.Player.MapSight()}
 	c.Broadcast <- c.CreaturePacket()
 }
 
@@ -56,6 +55,7 @@ func (c *Client) listen() {
 		case protocol.Walk:
 			c.processWalk(p.(protocol.Walk))
 		case protocol.Quit:
+			log.Print("quitting: ", c.UUID)
 			return
 		default:
 			log.Print("received unknown packet: ", t)

@@ -40,6 +40,23 @@ var _ = Describe("NetworkAdapter", func() {
 			close(done)
 		})
 
+		It("stops when the connection is closed", func(done Done) {
+			conn.Close()
+			Eventually(func() Packet {
+				return <-incoming
+			}).Should(Equal(Quit{}))
+			close(done)
+		})
+
+		It("stops when the connection is closed", func(done Done) {
+			conn.Close()
+			outgoing <- Creature{Position: Position{0, 0, 0}}
+			Eventually(func() Packet {
+				return <-incoming
+			}).Should(Equal(Quit{}))
+			close(done)
+		})
+
 		It("stops everything upon quitting", func(done Done) {
 			quit <- true
 			Eventually(conn.Closed).Should(BeTrue())

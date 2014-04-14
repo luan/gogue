@@ -38,7 +38,6 @@ var _ = Describe("Client", func() {
 	Describe("when connecting", func() {
 		It("broadcasts its location", func(done Done) {
 			<-client.Outgoing
-			<-client.Outgoing
 			Eventually(func() protocol.Packet {
 				return <-broadcast
 			}).Should(Equal(client.CreaturePacket()))
@@ -48,14 +47,13 @@ var _ = Describe("Client", func() {
 		It("sends out the visible map", func(done Done) {
 			Eventually(func() protocol.Packet {
 				return <-client.Outgoing
-			}).Should(Equal(protocol.MapPortion{"...\n...\n...\n"}))
+			}).Should(Equal(protocol.MapPortion{Data: "...\n...\n...\n"}))
 			close(done)
 		})
 	})
 
 	Context("after connected", func() {
 		BeforeEach(func(done Done) {
-			<-client.Outgoing
 			<-client.Outgoing
 			<-broadcast
 			close(done)
@@ -75,22 +73,22 @@ var _ = Describe("Client", func() {
 
 		Describe("walking", func() {
 			It("broadcasts its new location", func(done Done) {
-				client.Incoming <- protocol.Walk{protocol.East}
+				client.Incoming <- protocol.WalkEast
 				Expect(<-broadcast).To(Equal(protocol.Creature{
 					UUID:     client.UUID,
-					Position: protocol.Position{2, 1, 0},
+					Position: protocol.Position{X: 2, Y: 1, Z: 0},
 				}))
 				close(done)
 			})
 
 			It("receives its new location", func(done Done) {
-				client.Incoming <- protocol.Walk{protocol.West}
+				client.Incoming <- protocol.WalkWest
 
 				<-broadcast
 
 				Expect(<-client.Outgoing).To(Equal(protocol.Creature{
 					UUID:     client.UUID,
-					Position: protocol.Position{0, 1, 0},
+					Position: protocol.Position{X: 0, Y: 1, Z: 0},
 				}))
 				close(done)
 			})

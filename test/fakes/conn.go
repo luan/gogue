@@ -1,26 +1,20 @@
 package fakes
 
 import (
-	"encoding/gob"
 	"net"
 	"sync"
 	"time"
-
-	"github.com/luan/gogue/protocol"
 )
 
 type Conn struct {
-	serverBuffer net.Conn
-	clientBuffer net.Conn
-	closed       bool
-	closedMutex  sync.Mutex
+	buffer      net.Conn
+	closed      bool
+	closedMutex sync.Mutex
 }
 
-func NewConn() *Conn {
-	serverBuffer, clientBuffer := net.Pipe()
+func NewConn(buffer net.Conn) *Conn {
 	return &Conn{
-		serverBuffer: serverBuffer,
-		clientBuffer: clientBuffer,
+		buffer: buffer,
 	}
 }
 
@@ -28,7 +22,7 @@ func (c *Conn) Close() (err error) {
 	c.closedMutex.Lock()
 	c.closed = true
 	c.closedMutex.Unlock()
-	return c.clientBuffer.Close()
+	return c.buffer.Close()
 }
 
 func (c *Conn) Closed() bool {
@@ -58,20 +52,9 @@ func (c *Conn) SetWriteDeadline(t time.Time) (err error) {
 }
 
 func (c *Conn) Read(bytes []byte) (int, error) {
-	return c.serverBuffer.Read(bytes)
+	return c.buffer.Read(bytes)
 }
 
 func (c *Conn) Write(bytes []byte) (int, error) {
-	return c.serverBuffer.Write(bytes)
-}
-
-func (c *Conn) Send(p protocol.Packet) {
-	enc := gob.NewEncoder(c.clientBuffer)
-	enc.Encode(&p)
-}
-
-func (c *Conn) Receive() (p protocol.Packet) {
-	dec := gob.NewDecoder(c.clientBuffer)
-	dec.Decode(&p)
-	return
+	return c.buffer.Write(bytes)
 }

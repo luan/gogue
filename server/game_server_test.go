@@ -18,48 +18,76 @@ var _ = Describe("GameServer", func() {
 
 	BeforeEach(func() {
 		listener = fakes.NewListener()
-		mmap = gogue.NewMap("#...#\n#...#")
+		mmap = gogue.NewMap("#...#\n#.>.#", "#...#\n.<.#")
 		gs = NewGameServer(mmap, listener)
 		go gs.Run()
 	})
 
 	Describe("client connections", func() {
-		Context("when a new client connects", func() {
-			It("sends the visible map to the connected client", func(done Done) {
-				client := fakes.NewClient()
-				client.Connect(listener)
-				Eventually(client.Receive).Should(
-					BeAssignableToTypeOf(protocol.MapPortion{}))
+		Context("there are other players connected", func() {
+			var (
+				remoteClients []*fakes.Client
+			)
+
+			BeforeEach(func(done Done) {
+				rcl := fakes.NewClient()
+				rcl.Connect(listener)
+				remoteClients = append(remoteClients, rcl)
+				rcl.Outgoing <- protocol.WalkEast
+				for i := 0; i < 3; i++ {
+					rcl := fakes.NewClient()
+					rcl.Connect(listener)
+					remoteClients = append(remoteClients, rcl)
+				}
+				for _, rcl := range remoteClients {
+				inner:
+					for {
+						select {
+						case <-rcl.Incoming:
+						default:
+							break inner
+						}
+					}
+				}
 				close(done)
 			})
 
-			It("broadcasts its presence to all connected clients", func(done Done) {
-				client1 := fakes.NewClient()
-				client1.Connect(listener)
-				client2 := fakes.NewClient()
-				client2.Connect(listener)
-
-				Eventually(client1.Receive).Should(
-					BeAssignableToTypeOf(protocol.Creature{}))
+			It("sends the new client the map for the current floor", func(done Done) {
+				rcl := fakes.NewClient()
+				rcl.Connect(listener)
+				Eventually(func() protocol.Packet {
+					return <-rcl.Incoming
+				}).Should(Equal(protocol.MapPortion{Data: "#...#\n#.>.#\n"}))
 				close(done)
 			})
-		})
 
-		Context("when a client disconnects", func() {
-			It("forgets about the client and stops broadcasting to it", func(done Done) {
-				client1 := fakes.NewClient()
-				client1.Connect(listener)
-				client2 := fakes.NewClient()
-				client2.Connect(listener)
+			It("sends the new client info about other players on the same floor", func(done Done) {
+				rcl := fakes.NewClient()
+				rcl.Connect(listener)
+				packets := []protocol.Packet{}
+				<-rcl.Incoming // map packet
+				for i := 0; i < 4; i++ {
+					packets = append(packets, <-rcl.Incoming)
+				}
 
-				Eventually(client1.Receive).Should(BeAssignableToTypeOf(protocol.Creature{}))
-				Eventually(client2.Receive).Should(BeAssignableToTypeOf(protocol.Creature{}))
+				for _, cl := range gs.Clients() {
+					if cl.Player.Z == 0 {
+						Expect(packets).To(ContainElement(cl.CreaturePacket()))
+					} else {
+						Expect(packets).NotTo(ContainElement(cl.CreaturePacket()))
+					}
+				}
+				close(done)
+			})
 
-				client1.Send(protocol.Quit{})
-				Eventually(client2.Receive).Should(BeAssignableToTypeOf(protocol.RemoveCreature{}))
-
-				client2.Send(protocol.Walk{protocol.East})
-				Eventually(client1.Receive).Should(BeNil())
+			It("sends the new clients info to all other players on the same floor", func(done Done) {
+				rcl := fakes.NewClient()
+				rcl.Connect(listener)
+				for _, rocl := range remoteClients {
+					Eventually(func() protocol.Packet {
+						return <-rocl.Incoming
+					}).Should(BeAssignableToTypeOf(protocol.Creature{}))
+				}
 				close(done)
 			})
 		})
