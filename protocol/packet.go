@@ -30,4 +30,11 @@ type Walk struct {
 	Direction string
 }
 
+var (
+	WalkNorth = Walk{Direction: North}
+	WalkSouth = Walk{Direction: South}
+	WalkWest  = Walk{Direction: West}
+	WalkEast  = Walk{Direction: East}
+)
+
 type Quit struct{}
