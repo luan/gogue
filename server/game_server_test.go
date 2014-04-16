@@ -1,6 +1,8 @@
 package server_test
 
 import (
+	"time"
+
 	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
 	. "github.com/luan/gogue/server"
@@ -88,6 +90,38 @@ var _ = Describe("GameServer", func() {
 						return <-rocl.Incoming
 					}).Should(BeAssignableToTypeOf(protocol.Creature{}))
 				}
+				close(done)
+			})
+		})
+
+		Context("when a client disconnects", func() {
+			It("forgets about the client and stops broadcasting to it", func(done Done) {
+				rcl1 := fakes.NewClient()
+				rcl1.Connect(listener)
+				rcl2 := fakes.NewClient()
+				rcl2.Connect(listener)
+
+				rcl1.Outgoing <- protocol.Quit{}
+
+				Eventually(func() protocol.Packet {
+					return <-rcl2.Incoming
+				}).Should(BeAssignableToTypeOf(protocol.RemoveCreature{}))
+
+				rcl2.Outgoing <- protocol.WalkNorth
+
+			noincoming:
+				for {
+					select {
+					case p := <-rcl1.Incoming:
+						if cp, ok := p.(protocol.Creature); ok {
+							Expect(cp.Y).NotTo(Equal(0))
+						}
+					default:
+						break noincoming
+					}
+					time.Sleep(100)
+				}
+
 				close(done)
 			})
 		})

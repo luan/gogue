@@ -1,6 +1,8 @@
 package protocol_test
 
 import (
+	"encoding/gob"
+	"net"
 	. "github.com/luan/gogue/protocol"
 	"github.com/luan/gogue/test/fakes"
 	. "github.com/onsi/ginkgo"
@@ -9,18 +11,21 @@ import (
 
 var _ = Describe("NetworkAdapter", func() {
 	var (
-		na       *NetworkAdapter
-		conn     *fakes.Conn
-		incoming chan Packet
-		outgoing chan Packet
-		quit     chan bool
+		na           *NetworkAdapter
+		serverBuffer net.Conn
+		clientBuffer net.Conn
+		conn         *fakes.Conn
+		incoming     chan Packet
+		outgoing     chan Packet
+		quit         chan bool
 	)
 
 	BeforeEach(func() {
 		incoming = make(chan Packet)
 		outgoing = make(chan Packet)
 		quit = make(chan bool)
-		conn = fakes.NewConn()
+		serverBuffer, clientBuffer = net.Pipe()
+		conn = fakes.NewConn(serverBuffer)
 		na = NewNetworkAdapter(incoming, outgoing, quit, conn)
 		na.Listen()
 	})
@@ -28,7 +33,8 @@ var _ = Describe("NetworkAdapter", func() {
 	Describe("listening", func() {
 		It("passes packets from the wire to the incoming channel", func(done Done) {
 			p := Quit{}
-			conn.Send(p)
+			enc := gob.NewEncoder(clientBuffer)
+			enc.Encode(&p)
 			Expect(<-incoming).To(Equal(p))
 			close(done)
 		})
@@ -36,7 +42,11 @@ var _ = Describe("NetworkAdapter", func() {
 		It("passes along packets from the outgoing channel to the wire", func(done Done) {
 			p := RemoveCreature{"abc"}
 			outgoing <- p
-			Expect(conn.Receive()).To(Equal(p))
+
+			var q Packet
+			dec := gob.NewDecoder(clientBuffer)
+			dec.Decode(&q)
+			Expect(q).To(Equal(p))
 			close(done)
 		})
 
