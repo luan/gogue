@@ -3,14 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
+	"github.com/luan/gogue/protocol"
 	termbox "github.com/nsf/termbox-go"
 )
 
-func showMapSight(mapString string) {
-	mapArray := strings.Split(mapString, "\n")
+var creatures = make(map[string]protocol.Creature)
+var mapPortion protocol.MapPortion
+
+func showMapSight() {
+	mapArray := strings.Split(mapPortion.Data, "\n")
 
 	for y, row := range mapArray {
 		for x, tile := range []byte(row) {
@@ -23,32 +28,41 @@ func showMapSight(mapString string) {
 				fgAtts = termbox.ColorBlue
 			case '<':
 				fgAtts = termbox.ColorCyan
-			case '@':
-				fgAtts = termbox.AttrBold + termbox.ColorGreen
-			case '&':
-				fgAtts = termbox.AttrBold + termbox.ColorMagenta
 			}
 
 			termbox.SetCell(x+5, y+5, t, fgAtts, bgAttrs)
 		}
 	}
+
+	for _, cr := range creatures {
+		if cr.Z == mapPortion.Z {
+			fgAtts := termbox.AttrBold + termbox.ColorGreen
+			bgAttrs := termbox.ColorDefault
+			termbox.SetCell(cr.X+5, cr.Y+5, '@', fgAtts, bgAttrs)
+		}
+	}
 }
 
-func eventLoop(conn net.Conn) {
+func eventLoop(out chan<- protocol.Packet, quit chan bool) {
+	defer func() {
+		out <- protocol.Quit{}
+		close(quit)
+	}()
+
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
 			switch ev.Key {
 			case termbox.KeyCtrlQ:
-				conn.Write([]byte("quit"))
+				return
 			case termbox.KeyArrowUp:
-				conn.Write([]byte("mn"))
+				out <- protocol.WalkNorth
 			case termbox.KeyArrowDown:
-				conn.Write([]byte("ms"))
+				out <- protocol.WalkSouth
 			case termbox.KeyArrowLeft:
-				conn.Write([]byte("mw"))
+				out <- protocol.WalkWest
 			case termbox.KeyArrowRight:
-				conn.Write([]byte("me"))
+				out <- protocol.WalkEast
 			}
 		}
 	}
@@ -65,7 +79,13 @@ func main() {
 		return
 	}
 
-	defer conn.Close()
+	in := make(chan protocol.Packet)
+	out := make(chan protocol.Packet)
+	quit := make(chan bool)
+	na := protocol.NewNetworkAdapter(in, out, quit, conn)
+	na.Listen()
+
+	defer na.Close()
 
 	err = termbox.Init()
 	if err != nil {
@@ -79,26 +99,29 @@ func main() {
 	termbox.HideCursor()
 	termbox.Flush()
 
-	go eventLoop(conn)
+	go eventLoop(out, quit)
 
 	for {
-		buf := make([]byte, 1024)
-		bytesRead, err := conn.Read(buf)
+		select {
+		case p := <-in:
+			switch t := p.(type) {
+			case protocol.MapPortion:
+				mapPortion = p.(protocol.MapPortion)
+			case protocol.Creature:
+				cr := p.(protocol.Creature)
+				creatures[cr.UUID] = cr
+			case protocol.RemoveCreature:
+				cr := p.(protocol.RemoveCreature)
+				delete(creatures, cr.UUID)
+			default:
+				log.Print("received unknown packet: ", t)
+			}
 
-		if err != nil {
-			fmt.Println("Error ocurred.")
+			showMapSight()
+
+			termbox.Flush()
+		case <-quit:
 			return
 		}
-
-		bufString := string(buf[0:bytesRead])
-
-		switch bufString {
-		case "quit":
-			return
-		default:
-			showMapSight(bufString)
-		}
-
-		termbox.Flush()
 	}
 }

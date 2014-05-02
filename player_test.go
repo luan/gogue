@@ -4,6 +4,7 @@ import (
 	. "github.com/luan/gogue"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"strings"
 )
 
 var _ = Describe("Player", func() {
@@ -17,6 +18,24 @@ var _ = Describe("Player", func() {
 	JustBeforeEach(func() {
 		mmap = NewMap(mapInput...)
 		player = NewPlayer("me", mmap, Position{1, 1, 0})
+	})
+
+	Describe("MapSight", func() {
+		BeforeEach(func() {
+			mapInput = []string{`
+				...
+				.#.
+				...
+				`}
+		})
+
+		It("returns the visible portion of the map", func() {
+			sight := player.MapSight()
+			Expect(sight).To(MatchRegexp(strings.Replace(`...
+			.#.
+			...
+			`, "\t", "", -1)))
+		})
 	})
 
 	Describe("Walking", func() {

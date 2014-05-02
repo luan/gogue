@@ -6,17 +6,28 @@ import (
 )
 
 type Player struct {
-	Guid string
+	UUID string
 	Position
-	mmap *Map
+	Map *Map
 }
 
-func NewPlayer(guid string, mmap *Map, pos Position) *Player {
+func NewPlayer(uuid string, Map *Map, pos Position) *Player {
 	return &Player{
-		Guid:     guid,
+		UUID:     uuid,
 		Position: pos,
-		mmap:     mmap,
+		Map:      Map,
 	}
+}
+
+func (p *Player) MapSight() (m string) {
+	for _, row := range p.Map.Tiles()[p.Z] {
+		for _, t := range row {
+			m += t.String()
+		}
+
+		m += "\n"
+	}
+	return
 }
 
 func (p *Player) MoveNorth() error {
@@ -36,7 +47,7 @@ func (p *Player) MoveWest() error {
 }
 
 func (p *Player) moveTo(pos Position) (err error) {
-	if t := p.mmap.Get(pos); t.IsWalkable() {
+	if t := p.Map.Get(pos); t.IsWalkable() {
 		switch t.ChangeFloor() {
 		case "up":
 			p.Position = pos.Up()
