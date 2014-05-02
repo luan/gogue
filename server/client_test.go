@@ -73,25 +73,21 @@ var _ = Describe("Client", func() {
 
 		Describe("walking", func() {
 			It("broadcasts its new location", func(done Done) {
-				client.Incoming <- protocol.WalkEast
+				client.Incoming <- protocol.WalkNorth
 				Expect(<-broadcast).To(Equal(protocol.Creature{
 					UUID:     client.UUID,
-					Position: protocol.Position{X: 2, Y: 1, Z: 1},
+					Position: protocol.Position{X: 1, Y: 0, Z: 0},
 				}))
 				close(done)
 			})
 
-			It("receives its new location", func(done Done) {
-				client.Incoming <- protocol.WalkWest
-
-				<-broadcast
-
-				Expect(<-client.Outgoing).To(Equal(protocol.Creature{
-					UUID:     client.UUID,
-					Position: protocol.Position{X: 0, Y: 1, Z: 0},
-				}))
+			Context("when changing floors", func() {
+				It("sends out the new floor map", func(done Done) {
+					client.Incoming <- protocol.WalkEast
+					Expect(<-client.Outgoing).To(Equal(protocol.MapPortion{Data: "...\n..<\n...\n", Z: 1}))
 				close(done)
 			})
 		})
 	})
+})
 })

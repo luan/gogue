@@ -64,6 +64,8 @@ func (c *Client) listen() {
 }
 
 func (c *Client) processWalk(p protocol.Walk) {
+	previousZ := c.Player.Z
+
 	switch p.Direction {
 	case protocol.North:
 		c.Player.MoveNorth()
@@ -74,6 +76,10 @@ func (c *Client) processWalk(p protocol.Walk) {
 	case protocol.West:
 		c.Player.MoveWest()
 	}
+
+	if c.Player.Z != previousZ {
+		c.Outgoing <- protocol.MapPortion{Data: c.Player.MapSight(), Z: c.Player.Z}
+	}
+
 	c.Broadcast <- c.CreaturePacket()
-	c.Outgoing <- c.CreaturePacket()
 }

@@ -34,95 +34,31 @@ var _ = Describe("GameServer", func() {
 			BeforeEach(func(done Done) {
 				rcl := fakes.NewClient()
 				rcl.Connect(listener)
-				remoteClients = append(remoteClients, rcl)
 				rcl.Outgoing <- protocol.WalkEast
 				for i := 0; i < 3; i++ {
 					rcl := fakes.NewClient()
 					rcl.Connect(listener)
+					time.Sleep(100)
 					remoteClients = append(remoteClients, rcl)
 				}
-				for _, rcl := range remoteClients {
-				inner:
-					for {
-						select {
-						case <-rcl.Incoming:
-						default:
-							break inner
-						}
-					}
-				}
 				close(done)
 			})
 
-			It("sends the new client the map for the current floor", func(done Done) {
+			It("sends the new client the map for the current floor", func() {
 				rcl := fakes.NewClient()
 				rcl.Connect(listener)
-				Eventually(func() protocol.Packet {
-					return <-rcl.Incoming
-				}).Should(Equal(protocol.MapPortion{Data: "#...#\n#.>.#\n"}))
-				close(done)
+				Eventually(rcl.ReceivedPackets).Should(ContainElement(protocol.MapPortion{Data: "#...#\n#.>.#\n", Z: 0}))
 			})
 
-			It("sends the new client info about other players on the same floor", func(done Done) {
+			It("sends the new client info about other players at the current floor", func() {
 				rcl := fakes.NewClient()
 				rcl.Connect(listener)
-				packets := []protocol.Packet{}
-				<-rcl.Incoming // map packet
-				for i := 0; i < 4; i++ {
-					packets = append(packets, <-rcl.Incoming)
-				}
 
 				for _, cl := range gs.Clients() {
 					if cl.Player.Z == 0 {
-						Expect(packets).To(ContainElement(cl.CreaturePacket()))
-					} else {
-						Expect(packets).NotTo(ContainElement(cl.CreaturePacket()))
+						Eventually(rcl.ReceivedPackets).Should(ContainElement(cl.CreaturePacket()))
 					}
 				}
-				close(done)
-			})
-
-			It("sends the new clients info to all other players on the same floor", func(done Done) {
-				rcl := fakes.NewClient()
-				rcl.Connect(listener)
-				for _, rocl := range remoteClients {
-					Eventually(func() protocol.Packet {
-						return <-rocl.Incoming
-					}).Should(BeAssignableToTypeOf(protocol.Creature{}))
-				}
-				close(done)
-			})
-		})
-
-		Context("when a client disconnects", func() {
-			It("forgets about the client and stops broadcasting to it", func(done Done) {
-				rcl1 := fakes.NewClient()
-				rcl1.Connect(listener)
-				rcl2 := fakes.NewClient()
-				rcl2.Connect(listener)
-
-				rcl1.Outgoing <- protocol.Quit{}
-
-				Eventually(func() protocol.Packet {
-					return <-rcl2.Incoming
-				}).Should(BeAssignableToTypeOf(protocol.RemoveCreature{}))
-
-				rcl2.Outgoing <- protocol.WalkNorth
-
-			noincoming:
-				for {
-					select {
-					case p := <-rcl1.Incoming:
-						if cp, ok := p.(protocol.Creature); ok {
-							Expect(cp.Y).NotTo(Equal(0))
-						}
-					default:
-						break noincoming
-					}
-					time.Sleep(100)
-				}
-
-				close(done)
 			})
 		})
 	})

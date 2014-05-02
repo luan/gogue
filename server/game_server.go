@@ -77,25 +77,12 @@ func (gs *GameServer) deleteClient(UUID string) {
 
 func (gs *GameServer) handleClients() {
 	for {
-		select {
-		case packet := <-gs.Broadcast:
-			for _, cl := range gs.Clients() {
-				var scl *Client
-				if p, ok := packet.(protocol.RemoveCreature); ok {
-					scl = gs.Clients()[p.UUID]
-				}
-				if p, ok := packet.(protocol.Creature); ok {
-					scl = gs.Clients()[p.UUID]
-				}
-
-				if scl != nil && cl.Player.Z != scl.Player.Z {
-					continue
-				}
-				log.Print("sending broadcast to: ", cl.UUID)
-				select {
-				case cl.Outgoing <- packet:
-				case <-cl.Quit:
-				}
+		packet := <-gs.Broadcast
+		for _, cl := range gs.Clients() {
+			log.Print("sending broadcast to: ", cl.UUID)
+			select {
+			case cl.Outgoing <- packet:
+			case <-cl.Quit:
 			}
 		}
 	}
