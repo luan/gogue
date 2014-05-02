@@ -1,10 +1,10 @@
 package gogue_test
 
 import (
-	"strings"
 	. "github.com/luan/gogue"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"strings"
 )
 
 var _ = Describe("Player", func() {

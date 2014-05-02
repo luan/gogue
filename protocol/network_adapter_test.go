@@ -2,11 +2,11 @@ package protocol_test
 
 import (
 	"encoding/gob"
-	"net"
 	. "github.com/luan/gogue/protocol"
 	"github.com/luan/gogue/test/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"net"
 )
 
 var _ = Describe("NetworkAdapter", func() {
