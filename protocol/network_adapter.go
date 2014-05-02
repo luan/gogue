@@ -63,6 +63,7 @@ func (na *NetworkAdapter) handleOutgoing() {
 		case p := <-na.out:
 			if err := na.Encode(&p); err != nil {
 				log.Print("[protocol.NetworkAdapter] encode error:", err)
+				close(na.quit)
 				return
 			}
 		case <-na.quit:
