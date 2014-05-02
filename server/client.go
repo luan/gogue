@@ -40,7 +40,7 @@ func (c *Client) CreaturePacket() protocol.Creature {
 }
 
 func (c *Client) init() {
-	c.Outgoing <- protocol.MapPortion{Data: c.Player.MapSight()}
+	c.Outgoing <- protocol.MapPortion{Data: c.Player.MapSight(), Z: c.Player.Z}
 	c.Broadcast <- c.CreaturePacket()
 }
 

@@ -12,10 +12,10 @@ import (
 )
 
 var creatures = make(map[string]protocol.Creature)
-var mapString = ""
+var mapPortion protocol.MapPortion
 
 func showMapSight() {
-	mapArray := strings.Split(mapString, "\n")
+	mapArray := strings.Split(mapPortion.Data, "\n")
 
 	for y, row := range mapArray {
 		for x, tile := range []byte(row) {
@@ -35,9 +35,11 @@ func showMapSight() {
 	}
 
 	for _, cr := range creatures {
-		fgAtts := termbox.AttrBold + termbox.ColorGreen
-		bgAttrs := termbox.ColorDefault
-		termbox.SetCell(cr.X+5, cr.Y+5, '@', fgAtts, bgAttrs)
+		if cr.Z == mapPortion.Z {
+			fgAtts := termbox.AttrBold + termbox.ColorGreen
+			bgAttrs := termbox.ColorDefault
+			termbox.SetCell(cr.X+5, cr.Y+5, '@', fgAtts, bgAttrs)
+		}
 	}
 }
 
@@ -104,7 +106,7 @@ func main() {
 		case p := <-in:
 			switch t := p.(type) {
 			case protocol.MapPortion:
-				mapString = p.(protocol.MapPortion).Data
+				mapPortion = p.(protocol.MapPortion)
 			case protocol.Creature:
 				cr := p.(protocol.Creature)
 				creatures[cr.UUID] = cr

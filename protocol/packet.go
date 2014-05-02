@@ -17,6 +17,7 @@ type Position struct {
 
 type MapPortion struct {
 	Data string
+	Z    int
 }
 
 const (

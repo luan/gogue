@@ -19,7 +19,7 @@ var _ = Describe("Client", func() {
 	BeforeEach(func() {
 		broadcast = make(chan protocol.Packet)
 		quit = make(chan bool)
-		mmap = gogue.NewMap("...\n...\n...")
+		mmap = gogue.NewMap("...\n..>\n...", "...\n..<\n...")
 		client = NewClient(mmap, broadcast)
 		go client.Run()
 	})
@@ -47,7 +47,7 @@ var _ = Describe("Client", func() {
 		It("sends out the visible map", func(done Done) {
 			Eventually(func() protocol.Packet {
 				return <-client.Outgoing
-			}).Should(Equal(protocol.MapPortion{Data: "...\n...\n...\n"}))
+			}).Should(Equal(protocol.MapPortion{Data: "...\n..>\n...\n", Z: 0}))
 			close(done)
 		})
 	})
@@ -76,7 +76,7 @@ var _ = Describe("Client", func() {
 				client.Incoming <- protocol.WalkEast
 				Expect(<-broadcast).To(Equal(protocol.Creature{
 					UUID:     client.UUID,
-					Position: protocol.Position{X: 2, Y: 1, Z: 0},
+					Position: protocol.Position{X: 2, Y: 1, Z: 1},
 				}))
 				close(done)
 			})
