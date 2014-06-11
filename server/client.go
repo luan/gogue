@@ -10,6 +10,7 @@ import (
 
 type Client struct {
 	*gogue.Player
+	*gogue.Map
 	Broadcast chan<- protocol.Packet
 	Outgoing  chan protocol.Packet
 	Incoming  chan protocol.Packet
@@ -20,6 +21,7 @@ func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 	uuid, _ := uuid.NewV4()
 	return &Client{
 		Player:    gogue.NewPlayer(uuid.String(), mmap, gogue.Position{X: 1, Y: 1, Z: 0}),
+		Map:       mmap,
 		Broadcast: broadcast,
 		Outgoing:  make(chan protocol.Packet),
 		Incoming:  make(chan protocol.Packet),
@@ -40,7 +42,8 @@ func (c *Client) CreaturePacket() protocol.Creature {
 }
 
 func (c *Client) init() {
-	c.Outgoing <- protocol.MapPortion{Data: c.Player.MapSight(), Z: c.Player.Z}
+	c.Outgoing <- protocol.Map{*c.Map}
+	c.Outgoing <- protocol.Player{c.Player.UUID}
 	c.Broadcast <- c.CreaturePacket()
 }
 
@@ -64,8 +67,6 @@ func (c *Client) listen() {
 }
 
 func (c *Client) processWalk(p protocol.Walk) {
-	previousZ := c.Player.Z
-
 	switch p.Direction {
 	case protocol.North:
 		c.Player.MoveNorth()
@@ -75,10 +76,6 @@ func (c *Client) processWalk(p protocol.Walk) {
 		c.Player.MoveEast()
 	case protocol.West:
 		c.Player.MoveWest()
-	}
-
-	if c.Player.Z != previousZ {
-		c.Outgoing <- protocol.MapPortion{Data: c.Player.MapSight(), Z: c.Player.Z}
 	}
 
 	c.Broadcast <- c.CreaturePacket()

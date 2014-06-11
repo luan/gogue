@@ -17,8 +17,9 @@ type NetworkAdapter struct {
 
 func NewNetworkAdapter(in chan<- Packet, out <-chan Packet, quit chan bool, conn net.Conn) *NetworkAdapter {
 	gob.Register(Creature{})
-	gob.Register(MapPortion{})
+	gob.Register(Map{})
 	gob.Register(RemoveCreature{})
+	gob.Register(Player{})
 
 	gob.Register(Walk{})
 	gob.Register(Quit{})

@@ -23,11 +23,19 @@ func (p Position) West() Position {
 }
 
 func (p Position) Up() Position {
-	p.Z--
+	p.Z++
 	return p
 }
 
 func (p Position) Down() Position {
-	p.Z++
+	p.Z--
 	return p
+}
+
+func (p Position) Add(q Position) Position {
+	return Position{
+		X: p.X + q.X,
+		Y: p.Y + q.Y,
+		Z: p.Z + q.Z,
+	}
 }

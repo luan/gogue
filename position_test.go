@@ -38,14 +38,21 @@ var _ = Describe("Position", func() {
 	Describe("Up", func() {
 		It("changes the position to the upper floor of the current", func() {
 			pos := Position{X: 2, Y: 2, Z: 2}
-			Expect(pos.Up()).To(Equal(Position{X: 2, Y: 2, Z: 1}))
+			Expect(pos.Up()).To(Equal(Position{X: 2, Y: 2, Z: 3}))
 		})
 	})
 
 	Describe("Down", func() {
 		It("changes the position to the lower floor of the current", func() {
 			pos := Position{X: 2, Y: 2, Z: 2}
-			Expect(pos.Down()).To(Equal(Position{X: 2, Y: 2, Z: 3}))
+			Expect(pos.Down()).To(Equal(Position{X: 2, Y: 2, Z: 1}))
+		})
+	})
+
+	Describe("Add", func() {
+		It("adds itself to another position", func() {
+			pos := Position{X: 2, Y: 2, Z: 2}
+			Expect(pos.Add(Position{1, 1, 1})).To(Equal(Position{X: 3, Y: 3, Z: 3}))
 		})
 	})
 })

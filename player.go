@@ -1,9 +1,6 @@
 package gogue
 
-import (
-	"errors"
-	"fmt"
-)
+import "errors"
 
 type Player struct {
 	UUID string
@@ -17,17 +14,6 @@ func NewPlayer(uuid string, Map *Map, pos Position) *Player {
 		Position: pos,
 		Map:      Map,
 	}
-}
-
-func (p *Player) MapSight() (m string) {
-	for _, row := range p.Map.Tiles()[p.Z] {
-		for _, t := range row {
-			m += t.String()
-		}
-
-		m += "\n"
-	}
-	return
 }
 
 func (p *Player) MoveNorth() error {
@@ -47,22 +33,11 @@ func (p *Player) MoveWest() error {
 }
 
 func (p *Player) moveTo(pos Position) (err error) {
-	if t := p.Map.Get(pos); t.IsWalkable() {
-		switch t.ChangeFloor() {
-		case "up":
-			p.Position = pos.Up()
-		case "down":
-			p.Position = pos.Down()
-		default:
-			p.Position = pos
-		}
+	var t Tile
+	if t, err = p.Map.Get(pos); err == nil && t.IsWalkable() {
+		p.Position = pos.Add(t.PositionModifier())
 	} else {
 		err = errors.New("cannot move")
 	}
-
 	return
-}
-
-func (p Player) String() string {
-	return fmt.Sprintf("Player{%d,%d,%d}", p.X, p.Y, p.Z)
 }

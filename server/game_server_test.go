@@ -20,7 +20,7 @@ var _ = Describe("GameServer", func() {
 
 	BeforeEach(func() {
 		listener = fakes.NewListener()
-		mmap = gogue.NewMap("#...#\n#.>.#", "#...#\n.<.#")
+		mmap = gogue.NewMap("../assets/map-tiled.json")
 		gs = NewGameServer(mmap, listener)
 		go gs.Run()
 	})
@@ -44,10 +44,10 @@ var _ = Describe("GameServer", func() {
 				close(done)
 			})
 
-			It("sends the new client the map for the current floor", func() {
+			It("sends the new client map for the current floor", func() {
 				rcl := fakes.NewClient()
 				rcl.Connect(listener)
-				Eventually(rcl.ReceivedPackets).Should(ContainElement(protocol.MapPortion{Data: "#...#\n#.>.#\n", Z: 0}))
+				Eventually(rcl.ReceivedPackets).Should(ContainElement(protocol.Map{*mmap}))
 			})
 
 			It("sends the new client info about other players at the current floor", func() {
@@ -55,9 +55,7 @@ var _ = Describe("GameServer", func() {
 				rcl.Connect(listener)
 
 				for _, cl := range gs.Clients() {
-					if cl.Player.Z == 0 {
-						Eventually(rcl.ReceivedPackets).Should(ContainElement(cl.CreaturePacket()))
-					}
+					Eventually(rcl.ReceivedPackets).Should(ContainElement(cl.CreaturePacket()))
 				}
 			})
 		})

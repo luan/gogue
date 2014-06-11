@@ -8,32 +8,32 @@ import (
 
 var _ = Describe("Map", func() {
 	Describe("NewMap", func() {
-		It("creates a map with the content passed in", func() {
-			newMap := NewMap(`
-      ..#
-      #.*`)
-			Expect(newMap.Height).To(Equal(2))
-			Expect(newMap.Width).To(Equal(3))
-			Expect(newMap.Depth).To(Equal(1))
-			Expect(newMap.Get(Position{X: 0, Y: 0})).To(Equal(Tile('.')))
-			Expect(newMap.Get(Position{X: 2, Y: 1})).To(Equal(Tile('*')))
-		})
+		It("creates a map from the file passed in", func() {
+			newMap := NewMap("assets/map-tiled.json")
+			var tile Tile
+			tile, _ = newMap.Get(Position{X: 10, Y: 12, Z: 0})
+			Expect(tile.Tiles).To(Equal([]int{7, 0}))
+			Expect(tile.PositionModifier()).To(Equal(Position{1, 2, -1}))
+			Expect(tile.IsWalkable()).To(BeTrue())
 
-		It("has multiple floors", func() {
-			newMap := NewMap(`
-      ..#
-      #.>
-      `, `
-      #.#
-      >.<`, `
-      ..*
-      <##`)
-			Expect(newMap.Height).To(Equal(2))
-			Expect(newMap.Width).To(Equal(3))
-			Expect(newMap.Depth).To(Equal(3))
-			Expect(newMap.Get(Position{X: 0, Y: 0, Z: 0})).To(Equal(Tile('.')))
-			Expect(newMap.Get(Position{X: 2, Y: 1, Z: 0})).To(Equal(Tile('>')))
-			Expect(newMap.Get(Position{X: 2, Y: 0, Z: 2})).To(Equal(Tile('*')))
+			tile, _ = newMap.Get(Position{X: 10, Y: 13, Z: 0})
+			Expect(tile.Tiles).To(Equal([]int{5, 2}))
+			Expect(tile.PositionModifier()).To(Equal(Position{0, 0, 0}))
+			Expect(tile.IsWalkable()).To(BeFalse())
+
+			tile, _ = newMap.Get(Position{X: 11, Y: 13, Z: -1})
+			Expect(tile.Tiles).To(Equal([]int{6, 0}))
+			Expect(tile.PositionModifier()).To(Equal(Position{-1, -2, 1}))
+			Expect(tile.IsWalkable()).To(BeTrue())
+
+			tile, _ = newMap.Get(Position{X: 9, Y: 6, Z: 1})
+			Expect(tile.Tiles).To(Equal([]int{7, 0}))
+			Expect(tile.PositionModifier()).To(Equal(Position{1, 2, -1}))
+			Expect(tile.IsWalkable()).To(BeTrue())
+
+			tile, _ = newMap.Get(Position{X: 11, Y: 7, Z: 1})
+			Expect(tile.Tiles).To(Equal([]int{5, 3}))
+			Expect(tile.IsWalkable()).To(BeFalse())
 		})
 	})
 })

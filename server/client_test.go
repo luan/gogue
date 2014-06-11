@@ -19,7 +19,7 @@ var _ = Describe("Client", func() {
 	BeforeEach(func() {
 		broadcast = make(chan protocol.Packet)
 		quit = make(chan bool)
-		mmap = gogue.NewMap("...\n..>\n...", "...\n..<\n...")
+		mmap = gogue.NewMap("../assets/map-tiled.json")
 		client = NewClient(mmap, broadcast)
 		go client.Run()
 	})
@@ -38,6 +38,7 @@ var _ = Describe("Client", func() {
 	Describe("when connecting", func() {
 		It("broadcasts its location", func(done Done) {
 			<-client.Outgoing
+			<-client.Outgoing
 			Eventually(func() protocol.Packet {
 				return <-broadcast
 			}).Should(Equal(client.CreaturePacket()))
@@ -46,14 +47,24 @@ var _ = Describe("Client", func() {
 
 		It("sends out the visible map", func(done Done) {
 			Eventually(func() protocol.Packet {
-				return <-client.Outgoing
-			}).Should(Equal(protocol.MapPortion{Data: "...\n..>\n...\n", Z: 0}))
+				p := <-client.Outgoing
+				return p
+			}).Should(Equal(protocol.Map{*mmap}))
+			close(done)
+		})
+
+		It("sends out the player uuid", func(done Done) {
+			Eventually(func() protocol.Packet {
+				p := <-client.Outgoing
+				return p
+			}).Should(Equal(protocol.Player{client.UUID}))
 			close(done)
 		})
 	})
 
 	Context("after connected", func() {
 		BeforeEach(func(done Done) {
+			<-client.Outgoing
 			<-client.Outgoing
 			<-broadcast
 			close(done)
@@ -80,14 +91,6 @@ var _ = Describe("Client", func() {
 				}))
 				close(done)
 			})
-
-			Context("when changing floors", func() {
-				It("sends out the new floor map", func(done Done) {
-					client.Incoming <- protocol.WalkEast
-					Expect(<-client.Outgoing).To(Equal(protocol.MapPortion{Data: "...\n..<\n...\n", Z: 1}))
-				close(done)
-			})
 		})
 	})
-})
 })

@@ -1,6 +1,12 @@
 package protocol
 
+import "github.com/luan/gogue"
+
 type Packet interface{}
+
+type Player struct {
+	UUID string
+}
 
 type Creature struct {
 	UUID string
@@ -15,9 +21,8 @@ type Position struct {
 	X, Y, Z int
 }
 
-type MapPortion struct {
-	Data string
-	Z    int
+type Map struct {
+	Map gogue.Map
 }
 
 const (

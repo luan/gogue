@@ -5,21 +5,53 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strings"
 
+	"github.com/luan/gogue"
 	"github.com/luan/gogue/protocol"
 	termbox "github.com/nsf/termbox-go"
+	"github.com/onsi/gomega/format"
 )
 
 var creatures = make(map[string]protocol.Creature)
-var mapPortion protocol.MapPortion
+var mmap gogue.Map
+var playerUUID string
 
 func showMapSight() {
-	mapArray := strings.Split(mapPortion.Data, "\n")
-
-	for y, row := range mapArray {
-		for x, tile := range []byte(row) {
-			t := rune(tile)
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	if playerUUID == "" {
+		return
+	}
+	player := creatures[playerUUID]
+	z := player.Z
+	minX := player.X - 7
+	minY := player.Y - 7
+	maxX := player.X + 8
+	maxY := player.Y + 8
+	if minX < 0 {
+		minX = 0
+	}
+	if maxX > mmap.Width {
+		maxX = mmap.Width
+	}
+	if minY < 0 {
+		minY = 0
+	}
+	if maxY >= mmap.Height {
+		maxY = mmap.Height
+	}
+	for y := minY; y < maxY; y++ {
+		for x := minX; x < maxX; x++ {
+			tile, _ := mmap.Get(gogue.Position{x, y, z})
+			t := ' '
+			if !tile.IsWalkable() {
+				t = '#'
+			} else if tile.Tiles[0] == 6 {
+				t = '<'
+			} else if tile.Tiles[0] == 7 {
+				t = '>'
+			} else if tile.IsWalkable() {
+				t = '.'
+			}
 			fgAtts := termbox.ColorWhite
 			bgAttrs := termbox.ColorDefault
 
@@ -30,15 +62,15 @@ func showMapSight() {
 				fgAtts = termbox.ColorCyan
 			}
 
-			termbox.SetCell(x+5, y+5, t, fgAtts, bgAttrs)
+			termbox.SetCell(x-minX+2, y-minY+2, t, fgAtts, bgAttrs)
 		}
 	}
 
 	for _, cr := range creatures {
-		if cr.Z == mapPortion.Z {
+		if cr.Z == z {
 			fgAtts := termbox.AttrBold + termbox.ColorGreen
 			bgAttrs := termbox.ColorDefault
-			termbox.SetCell(cr.X+5, cr.Y+5, '@', fgAtts, bgAttrs)
+			termbox.SetCell(cr.X-minX+2, cr.Y-minY+2, '@', fgAtts, bgAttrs)
 		}
 	}
 }
@@ -105,16 +137,21 @@ func main() {
 		select {
 		case p := <-in:
 			switch t := p.(type) {
-			case protocol.MapPortion:
-				mapPortion = p.(protocol.MapPortion)
+			case protocol.Map:
+				mmap = p.(protocol.Map).Map
+			case protocol.Player:
+				pl := p.(protocol.Player)
+				playerUUID = pl.UUID
 			case protocol.Creature:
 				cr := p.(protocol.Creature)
 				creatures[cr.UUID] = cr
 			case protocol.RemoveCreature:
 				cr := p.(protocol.RemoveCreature)
 				delete(creatures, cr.UUID)
+			case protocol.Quit:
+				return
 			default:
-				log.Print("received unknown packet: ", t)
+				log.Print("received unknown packet: ", format.Object(t, 1))
 			}
 
 			showMapSight()
