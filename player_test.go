@@ -15,7 +15,7 @@ var _ = Describe("Player", func() {
 
 	JustBeforeEach(func() {
 		mmap = NewMap("assets/map-tiled.json")
-		player = NewPlayer("me", mmap, Position{4, 5, 0})
+		player = NewPlayer("me", mmap, Position{34, 35, 0})
 	})
 
 	Describe("Walking", func() {
@@ -23,40 +23,40 @@ var _ = Describe("Player", func() {
 			err = player.MoveNorth()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("cannot move"))
-			Expect(player.X).To(Equal(4))
-			Expect(player.Y).To(Equal(5))
+			Expect(player.X).To(Equal(34))
+			Expect(player.Y).To(Equal(35))
 		})
 
 		It("Can move south", func() {
 			err = player.MoveSouth()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(player.X).To(Equal(4))
-			Expect(player.Y).To(Equal(6))
+			Expect(player.X).To(Equal(34))
+			Expect(player.Y).To(Equal(36))
 		})
 
 		It("Can move east", func() {
 			err = player.MoveEast()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(player.X).To(Equal(5))
-			Expect(player.Y).To(Equal(5))
+			Expect(player.X).To(Equal(35))
+			Expect(player.Y).To(Equal(35))
 		})
 
 		It("cannot move west because there is a wall", func() {
 			err = player.MoveWest()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("cannot move"))
-			Expect(player.X).To(Equal(4))
-			Expect(player.Y).To(Equal(5))
+			Expect(player.X).To(Equal(34))
+			Expect(player.Y).To(Equal(35))
 		})
 
 		Context("when next tile is position modifier", func() {
 			It("goes down when move towards the stairs", func() {
-				player.X = 9
-				player.Y = 7
+				player.X = 39
+				player.Y = 37
 				err = player.MoveEast()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(player.X).To(Equal(9))
-				Expect(player.Y).To(Equal(5))
+				Expect(player.X).To(Equal(39))
+				Expect(player.Y).To(Equal(35))
 				Expect(player.Z).To(Equal(1))
 			})
 		})

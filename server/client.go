@@ -20,7 +20,7 @@ type Client struct {
 func NewClient(mmap *gogue.Map, broadcast chan<- protocol.Packet) *Client {
 	uuid, _ := uuid.NewV4()
 	return &Client{
-		Player:    gogue.NewPlayer(uuid.String(), mmap, gogue.Position{X: 1, Y: 1, Z: 0}),
+		Player:    gogue.NewPlayer(uuid.String(), mmap, gogue.Position{X: 31, Y: 31, Z: 0}),
 		Map:       mmap,
 		Broadcast: broadcast,
 		Outgoing:  make(chan protocol.Packet),

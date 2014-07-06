@@ -87,7 +87,7 @@ var _ = Describe("Client", func() {
 				client.Incoming <- protocol.WalkNorth
 				Expect(<-broadcast).To(Equal(protocol.Creature{
 					UUID:     client.UUID,
-					Position: protocol.Position{X: 1, Y: 0, Z: 0},
+					Position: protocol.Position{X: 31, Y: 30, Z: 0},
 				}))
 				close(done)
 			})

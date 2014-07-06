@@ -32,6 +32,14 @@ func (p Position) Down() Position {
 	return p
 }
 
+func (p Position) Diff(q Position) Position {
+	return Position{
+		X: p.X - q.X,
+		Y: p.Y - q.Y,
+		Z: p.Z - q.Z,
+	}
+}
+
 func (p Position) Add(q Position) Position {
 	return Position{
 		X: p.X + q.X,
