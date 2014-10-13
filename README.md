@@ -1,4 +1,6 @@
-# Gogue [![wercker status](https://app.wercker.com/status/eb9aaa870ff2e5f53904fee534657baa/s/ "wercker status")](https://app.wercker.com/project/bykey/eb9aaa870ff2e5f53904fee534657baa)
+# Gogue
+
+[![wercker status](https://app.wercker.com/status/eb9aaa870ff2e5f53904fee534657baa/m/master "wercker status")](https://app.wercker.com/project/bykey/eb9aaa870ff2e5f53904fee534657baa)
 
 Gogue is a codename for this project, it should and will change before the first version.
 
